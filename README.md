@@ -175,9 +175,17 @@ English UI (captured from the running app):
 > Screens above are rendered with the bundled **Pakistan‑specific demo dataset**
 > (`Services/demoData.js`, Oct 2024 – May 2026). The **GPS Map Route** shows the geotagged
 > custody trail (farm → collection → mill → retailer) with real Punjab coordinates; on a
-> physical device it renders on the native map (Google/Apple Maps). **Still to capture on a
-> device/emulator**: **QR Scanner** (camera) and the full **Urdu (UR)** set.
+> physical device it renders on the native map (Google/Apple Maps).
 > Regenerate with `node scripts/capture-screenshots.js`.
+
+### اردو (Urdu) UI
+
+| Dashboard (ڈیش بورڈ) | Product Journey | GPS Map Route |
+|----------------------|-----------------|---------------|
+| ![Urdu dashboard](store/screenshots/ur/01-home-dashboard.png) | ![Urdu product journey](store/screenshots/ur/07-product-journey.png) | ![Urdu GPS route](store/screenshots/ur/08-gps-map-route.png) |
+
+> Full Urdu localization with right‑to‑left (RTL) layout. Regenerate with
+> `node scripts/capture-ur.js`. (Remaining: **QR Scanner** needs a camera/device.)
 
 ## 🔄 Traceability Workflow
 
