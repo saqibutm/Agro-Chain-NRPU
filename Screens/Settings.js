@@ -19,7 +19,7 @@ const Settings = ({ navigation }) => {
             </View>
             <View style={{ flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <Image source={require("../Images/panda.jpg")} style={{ width: 100, height: 100, borderRadius: 50 }} />
-                <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>John Alice</Text>
+                <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>Muhammad Aslam</Text>
             </View>
 
             {/* Language selector */}
