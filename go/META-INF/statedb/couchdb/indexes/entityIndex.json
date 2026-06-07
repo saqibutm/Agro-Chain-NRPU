@@ -1,0 +1,9 @@
+{
+  "index": {
+    "fields": [
+      "name"
+    ]
+  },
+  "name": "entityIndex",
+  "type": "json"
+}

@@ -1,0 +1,139 @@
+# ──────────────────────────────────────────────────────────────
+# AgroChain .gitignore
+# Covers: React Native/Expo, Node.js, Hyperledger Fabric, Go,
+# Android, Java, Python, IDEs, and OS files.
+# ──────────────────────────────────────────────────────────────
+
+# ── General ──
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.swp
+
+# ── OS files ──
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ── Git ──
+.git-credentials
+
+# ── Environment & secrets ──
+.env
+.env.*
+!.env.example
+secrets.json
+config.local.*
+config.local.json
+*.local.json
+
+# ── Node.js ──
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnp.*
+
+# ── Expo / React Native ──
+.expo/
+.expo-shared/
+.cache/
+dist/
+web-build/
+*.jsbundle
+.metro-health-check*
+.expo/settings.json
+
+# ── EAS / Play Store credentials (never commit) ──
+play-service-account.json
+google-services.json
+GoogleService-Info.plist
+credentials.json
+
+# ── Android ──
+.gradle/
+build/
+local.properties
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.keystore
+*.jks
+/android/app/release/
+
+# ── iOS ──
+ios/Pods/
+*.mobileprovision
+*.p8
+*.p12
+*.cer
+
+# ── Java ──
+target/
+*.class
+
+# ── Python (if present) ──
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# ── Go (chaincode) ──
+# Compiled chaincode binary is a build artifact — rebuild from source.
+go/supplychain
+*.exe
+*.test
+*.out
+vendor/
+
+# ── Hyperledger Fabric: crypto material, identities & artifacts ──
+# These contain private keys / certificates — NEVER commit.
+wallet/
+wallets/
+walletOrg*/
+crypto-config/
+organizations/
+**/msp/keystore/
+**/msp/signcerts/
+**/tls/
+keystore/
+*_sk
+*.pem
+*.key
+*.priv
+admin.id
+*.id
+connection-*.json
+!connection-*.example.json
+# Generated network artifacts
+*.block
+*.tx
+genesis.block
+channel-artifacts/
+system-genesis-block/
+
+# ── IDEs ──
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.sublime-*
+
+# ── Misc build / coverage ──
+coverage/
+.nyc_output/
+*.tsbuildinfo

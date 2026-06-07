@@ -1,0 +1,10 @@
+{
+  "index": {
+    "fields": [
+      "docType",
+      "subjectID"
+    ]
+  },
+  "name": "qualityReportIndex",
+  "type": "json"
+}

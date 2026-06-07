@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "AgroChain",
+    "slug": "agrochain",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agrochain.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AgroChain uses the camera to scan product QR codes for supply-chain verification.",
+        "NSLocationWhenInUseUsageDescription": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.agrochain.app",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "extra": {
+      "apiBaseUrl": "https://REPLACE_WITH_YOUR_PUBLIC_BACKEND_URL",
+      "defaultUsername": "appUser"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AgroChain uses the camera to scan product QR codes for supply-chain verification."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
+        }
+      ]
+    ]
+  }
+}

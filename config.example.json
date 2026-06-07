@@ -1,0 +1,17 @@
+{
+  "_comment": "EXAMPLE application configuration reference for AgroChain. The mobile app's runtime config lives in app.json (expo.extra); the gateway's config lives in org/.env. This file documents the expected keys in one place. Copy/adapt as needed; do not store real secrets here.",
+  "app": {
+    "apiBaseUrl": "https://api.your-domain.example",
+    "defaultUsername": "appUser"
+  },
+  "gateway": {
+    "port": 8081,
+    "host": "0.0.0.0",
+    "connectionProfile": "connection-org1.json",
+    "caName": "ca.farmerorg1.supplychain.com",
+    "orgMspId": "FarmerOrg1MSP",
+    "walletPath": "./walletOrg1",
+    "channelName": "supplychain-channel",
+    "chaincodeName": "supplychain"
+  }
+}

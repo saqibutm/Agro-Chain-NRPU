@@ -1,0 +1,151 @@
+Organizations:
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+    OrdererEndpoints:
+      - orderer.supplychain.com:7050
+      - orderer2.supplychain.com:8050
+      - orderer3.supplychain.com:9050
+
+  - &Org1
+      Name: FarmerOrg1MSP
+      ID: FarmerOrg1MSP
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('FarmerOrg1MSP.admin', 'FarmerOrg1MSP.peer', 'FarmerOrg1MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('FarmerOrg1MSP.admin', 'FarmerOrg1MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('FarmerOrg1MSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('FarmerOrg1MSP.peer')"
+      AnchorPeers:
+        - Host: peer0.farmerorg1.supplychain.com
+          Port: 7051
+
+  - &Org3
+      Name: PunjabOrg3MSP
+      ID: PunjabOrg3MSP
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('PunjabOrg3MSP.admin', 'PunjabOrg3MSP.peer', 'PunjabOrg3MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('PunjabOrg3MSP.admin', 'PunjabOrg3MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('PunjabOrg3MSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('PunjabOrg3MSP.peer')"
+      AnchorPeers:
+        - Host: peer0.punjaborg3.supplychain.com
+          Port: 11051
+
+  - &Org4
+      Name: MillOrg4MSP
+      ID: MillOrg4MSP
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('MillOrg4MSP.admin', 'MillOrg4MSP.peer', 'MillOrg4MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('MillOrg4MSP.admin', 'MillOrg4MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('MillOrg4MSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('MillOrg4MSP.peer')"
+      AnchorPeers:
+        - Host: peer0.millorg4.supplychain.com
+          Port: 13051
+          
+  - &Org5
+      Name: DealerOrg5MSP
+      ID: DealerOrg5MSP
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('DealerOrg5MSP.admin', 'DealerOrg5MSP.peer', 'DealerOrg5MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('DealerOrg5MSP.admin', 'DealerOrg5MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('DealerOrg5MSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('DealerOrg5MSP.peer')"
+      AnchorPeers:
+        - Host: peer0.dealerorg5.supplychain.com
+          Port: 15051
+
+  - &Org6
+      Name: RetailerOrg6MSP
+      ID: RetailerOrg6MSP
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: "OR('RetailerOrg6MSP.admin', 'RetailerOrg6MSP.peer', 'RetailerOrg6MSP.client')"
+        Writers:
+          Type: Signature
+          Rule: "OR('RetailerOrg6MSP.admin', 'RetailerOrg6MSP.client')"
+        Admins:
+          Type: Signature
+          Rule: "OR('RetailerOrg6MSP.admin')"
+        Endorsement:
+          Type: Signature
+          Rule: "OR('RetailerOrg6MSP.peer')"
+      AnchorPeers:
+        - Host: peer0.retailerorg6.supplychain.com
+          Port: 17051
+
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+
