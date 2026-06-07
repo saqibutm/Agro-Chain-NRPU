@@ -34,7 +34,7 @@ export default function SingIn({ navigation }) {
 
 	return (
 		<Container style={{ alignItems: "center", justifyContent: "flex-start", paddingHorizontal: width * 0.02, paddingVertical: height * 0.02, flex: 1 }}>
-			<Image source={require("../../Images/Logo.png")} style={{ width: width * 0.5, height: height * 0.34 }} />
+			<Image source={require("../../Images/Logo.png")} resizeMode="contain" style={{ width: width * 0.6, height: height * 0.3 }} />
 			<Text style={styles.headText}>{t("appName")}</Text>
 			<Text style={styles.loginText}>{t("login")}</Text>
 			<Input
