@@ -18,7 +18,12 @@ const Settings = ({ navigation }) => {
                 <Text style={styles.headText}>{t("settings")}</Text>
             </View>
             <View style={{ flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                <Image source={require("../Images/panda.jpg")} style={{ width: 100, height: 100, borderRadius: 50 }} />
+                {/* Farmer avatar. To use a real photo instead, drop an image at
+                    Images/farmer.jpg and replace this View with:
+                    <Image source={require("../Images/farmer.jpg")} style={styles.avatar} /> */}
+                <View style={styles.avatar}>
+                    <Text style={styles.avatarEmoji}>🧑🏽‍🌾</Text>
+                </View>
                 <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>Aslam</Text>
             </View>
 
@@ -70,6 +75,20 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
         marginTop: height * 0.04,
         marginBottom: height * 0.01,
+    },
+    avatar: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: "#e8f5e9",
+        borderWidth: 2,
+        borderColor: "green",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarEmoji: {
+        fontSize: 54,
+        lineHeight: 64,
     },
     langRow: {
         flexDirection: "row",
