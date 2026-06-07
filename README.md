@@ -168,14 +168,16 @@ English UI (captured from the running app):
 |--------------------|------------------------|--------------|
 | ![Settings](store/screenshots/en/04-settings-language.png) | ![About](store/screenshots/en/05-about.png) | ![Fraud Alerts](store/screenshots/en/06-fraud-alerts.png) |
 
-| Product Journey (consumer) | | |
-|----------------------------|---|---|
-| ![Product Journey](store/screenshots/en/07-product-journey.png) | | |
+| Product Journey (consumer) | GPS Map Route |
+|----------------------------|---------------|
+| ![Product Journey](store/screenshots/en/07-product-journey.png) | ![GPS Map Route](store/screenshots/en/08-gps-map-route.png) |
 
 > Screens above are rendered with the bundled **Pakistan‑specific demo dataset**
-> (`Services/demoData.js`, Oct 2024 – May 2026). **Still to capture on a device/emulator**
-> (per [`ASSETS.md`](ASSETS.md)): **QR Scanner** and **Map route** (need camera / native maps),
-> plus the full **Urdu (UR)** set. Regenerate with `node scripts/capture-screenshots.js`.
+> (`Services/demoData.js`, Oct 2024 – May 2026). The **GPS Map Route** shows the geotagged
+> custody trail (farm → collection → mill → retailer) with real Punjab coordinates; on a
+> physical device it renders on the native map (Google/Apple Maps). **Still to capture on a
+> device/emulator**: **QR Scanner** (camera) and the full **Urdu (UR)** set.
+> Regenerate with `node scripts/capture-screenshots.js`.
 
 ## 🔄 Traceability Workflow
 

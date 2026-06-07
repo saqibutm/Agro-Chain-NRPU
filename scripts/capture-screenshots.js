@@ -83,6 +83,15 @@ const clickTab = (i) =>
   await sleep(1500);
   await shoot('07-product-journey.png');
 
+  // 8. GPS Map route (open "View Route on Map" from the product journey)
+  await page.evaluate(() => {
+    const el = [...document.querySelectorAll('div,span,a')].reverse().find(x => /View Route on Map/.test(x.textContent) && x.textContent.length < 60);
+    let t = el; while (t && !(t.getAttribute && (t.getAttribute('role') === 'button' || t.onclick))) t = t.parentElement;
+    (t || el) && (t || el).click();
+  });
+  await sleep(1800);
+  await shoot('08-gps-map-route.png');
+
   await browser.close();
   console.log('done →', OUT);
 })().catch((e) => { console.error(e); process.exit(1); });
