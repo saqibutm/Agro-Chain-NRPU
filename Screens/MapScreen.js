@@ -3,6 +3,8 @@ import React, { useState } from 'react'
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Backward from '../Abstracts/Backward';
 import { FontSize } from '../Abstracts/Theme';
+import { DEMO_MODE } from '../Services/config';
+import { WHEAT_PRODUCTS } from '../Services/demoData';
 const { width, height } = Dimensions.get("window");
 
 // Default center: Faisalabad, Pakistan (wheat belt).
@@ -26,11 +28,14 @@ function regionFor(points) {
 }
 
 const MapScreen = ({ navigation, route }) => {
-    // Traceability mode: a list of geotagged custody points passed in.
-    const points = (route?.params?.points || []).filter(
+    // Traceability mode: a list of geotagged custody points passed in. In demo
+    // mode, fall back to a sample product's trail when opened standalone.
+    let pts = route?.params?.points || [];
+    if (!pts.length && DEMO_MODE && WHEAT_PRODUCTS[0]) pts = WHEAT_PRODUCTS[0].geoPoints || [];
+    const points = pts.filter(
         (p) => typeof p.latitude === "number" && typeof p.longitude === "number"
     );
-    const title = route?.params?.title;
+    const title = route?.params?.title || (DEMO_MODE ? WHEAT_PRODUCTS[0]?.productName : undefined);
     const isTrail = points.length > 0;
 
     // Standalone mode: a single draggable pin (legacy behavior).

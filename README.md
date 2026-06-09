@@ -187,6 +187,16 @@ English UI (captured from the running app):
 > Full Urdu localization with right‑to‑left (RTL) layout. Regenerate with
 > `node scripts/capture-ur.js`. (Remaining: **QR Scanner** needs a camera/device.)
 
+### iOS (native, captured on the iOS Simulator)
+
+| Dashboard | GPS Route on Apple Maps |
+|-----------|--------------------------|
+| ![iOS dashboard](store/screenshots/ios/01-home-dashboard.png) | ![iOS GPS map](store/screenshots/ios/08-gps-map-route.png) |
+
+> Captured running natively in **Expo Go** on the iOS Simulator (`npx expo start --ios`).
+> The GPS map renders on **real Apple Maps** — the geotagged custody trail
+> (Faisalabad → Toba Tek Singh → Okara) plotted across Punjab, Pakistan.
+
 ## 🔄 Traceability Workflow
 
 ```mermaid
