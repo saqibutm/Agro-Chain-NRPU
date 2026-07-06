@@ -1,90 +1,259 @@
-// Thin HTTP layer over the org backend (org/serverOrg1.js).
-// Each action maps to a REST endpoint that submits/evaluates a Fabric transaction.
-import { API_BASE_URL, REQUEST_TIMEOUT } from "./config";
+// Data layer — Supabase backend replacing Hyperledger Fabric REST gateway.
+// Function signatures are kept identical to the original so all screens work
+// unchanged. The offline SyncQueue calls dispatch() which maps Actions to
+// Supabase inserts.
+import { supabase } from "./supabase";
 
-async function request(path, { method = "GET", body, query } = {}) {
-  let url = `${API_BASE_URL}${path}`;
-  if (query) {
-    const qs = new URLSearchParams(query).toString();
-    url += `?${qs}`;
-  }
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal,
-    });
-
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.message || `Request failed (${res.status})`);
-    }
-    return data;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ── Action registry ──
-// The offline sync queue stores an { action, payload } record and replays it
-// here once connectivity returns. Keep payloads JSON-serializable.
+// ── Action registry ──────────────────────────────────────────────────────────
 export const Actions = {
-  CREATE_WHEAT_BATCH: "CREATE_WHEAT_BATCH",
-  SEND_WHEAT_BATCH: "SEND_WHEAT_BATCH",
-  REPORT_CONSUMER_ISSUE: "REPORT_CONSUMER_ISSUE",
-  RECORD_QUALITY_TEST: "RECORD_QUALITY_TEST",
+  CREATE_WHEAT_BATCH:   "CREATE_WHEAT_BATCH",
+  SEND_WHEAT_BATCH:     "SEND_WHEAT_BATCH",
+  REPORT_CONSUMER_ISSUE:"REPORT_CONSUMER_ISSUE",
+  RECORD_QUALITY_TEST:  "RECORD_QUALITY_TEST",
 };
 
+// ── Write dispatcher (used by SyncQueue for offline replay) ──────────────────
 export async function dispatch(action, payload) {
   switch (action) {
-    case Actions.CREATE_WHEAT_BATCH:
-      return request("/api/createWheatBatch", { method: "POST", body: payload });
-    case Actions.SEND_WHEAT_BATCH:
-      return request("/api/sendWheatBatch", { method: "POST", body: payload });
-    case Actions.REPORT_CONSUMER_ISSUE:
-      return request("/api/reportConsumerIssue", { method: "POST", body: payload });
-    case Actions.RECORD_QUALITY_TEST:
-      return request("/api/recordQualityTest", { method: "POST", body: payload });
+
+    case Actions.CREATE_WHEAT_BATCH: {
+      const { error } = await supabase.from("wheat_batches").insert({
+        wheat_batch_id: payload.wheatBatchID,
+        entity_id:      payload.entityID,
+        variety:        payload.variety  || null,
+        quantity:       payload.quantity || 0,
+        harvest_date:   payload.harvestDate || null,
+        qr_code:        payload.qrCode   || payload.wheatBatchID,
+        latitude:       payload.latitude || null,
+        longitude:      payload.longitude|| null,
+        status:         "Created",
+      });
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }
+
+    case Actions.SEND_WHEAT_BATCH: {
+      const { error: tErr } = await supabase.from("batch_transfers").insert({
+        wheat_batch_id: payload.wheatBatchID,
+        from_entity_id: payload.fromEntityID,
+        to_entity_id:   payload.toEntityID,
+        quantity:       payload.quantity || 0,
+        transfer_date:  payload.transferDate || null,
+        location:       payload.location || null,
+      });
+      if (tErr) throw new Error(tErr.message);
+      // Update batch status
+      await supabase
+        .from("wheat_batches")
+        .update({ status: "In Transit" })
+        .eq("wheat_batch_id", payload.wheatBatchID);
+      return { success: true };
+    }
+
+    case Actions.RECORD_QUALITY_TEST: {
+      const { error } = await supabase.from("quality_reports").insert({
+        report_id:  payload.reportID,
+        subject_id: payload.subjectID,
+        lab_id:     payload.labID    || null,
+        tested_by:  payload.testedBy || null,
+        test_date:  payload.testDate || null,
+        moisture:   payload.moisture ?? null,
+        protein:    payload.protein  ?? null,
+        gluten:     payload.gluten   ?? null,
+        pesticides: payload.pesticides || false,
+        aflatoxin:  payload.aflatoxin  || false,
+        result:     payload.result || "Pass",
+        grade:      payload.grade  || "A",
+        cert_hash:  payload.certHash || null,
+      });
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }
+
+    case Actions.REPORT_CONSUMER_ISSUE: {
+      const { error } = await supabase.from("consumer_issues").insert({
+        product_id:  payload.productID,
+        district:    payload.district    || null,
+        description: payload.description || null,
+      });
+      if (error) throw new Error(error.message);
+      return { success: true };
+    }
+
     default:
       throw new Error(`Unknown sync action: ${action}`);
   }
 }
 
-// ── Auth ──
-export function login(username, password) {
-  return request("/api/login", { method: "POST", body: { username, password } });
+// ── Auth (sign-in delegated to AuthContext/Supabase Auth) ────────────────────
+export async function login(username, password) {
+  const email = `${username.toLowerCase().trim()}@agrochain.local`;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+  // Fetch role from profiles table
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, role")
+    .eq("id", data.user.id)
+    .single();
+  return {
+    username: profile?.username || username.trim(),
+    role:     profile?.role     || "farmer",
+  };
 }
 
-// Read-only helpers (not queued — only used while online).
-export function queryWheatBatch(username, wheatBatchID) {
-  return request("/api/queryWheatBatch", { query: { username, wheatBatchID } });
+// ── Read helpers ─────────────────────────────────────────────────────────────
+
+export async function queryWheatBatch(username, wheatBatchID) {
+  const { data, error } = await supabase
+    .from("wheat_batches")
+    .select("*")
+    .eq("wheat_batch_id", wheatBatchID)
+    .single();
+  if (error) throw new Error(error.message);
+  return { batch: _mapBatch(data) };
 }
 
-export function queryAllWheatBatches(username) {
-  return request("/api/queryAllWheatBatches", { query: { username } });
+export async function queryAllWheatBatches(username) {
+  const { data, error } = await supabase
+    .from("wheat_batches")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return { batches: data.map(_mapBatch) };
 }
 
-export function queryAllProducts(username) {
-  return request("/api/queryAllProducts", { query: { username } });
+export async function queryAllProducts(username) {
+  const { data, error } = await supabase
+    .from("wheat_batches")
+    .select("*, batch_transfers(*)")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return { products: data.map(_mapProduct) };
 }
 
-export function queryProduct(username, productID) {
-  return request("/api/queryProduct", { query: { username, productID } });
+export async function queryProduct(username, productID) {
+  const [batchRes, transferRes, qualRes] = await Promise.all([
+    supabase.from("wheat_batches").select("*").eq("wheat_batch_id", productID).single(),
+    supabase.from("batch_transfers").select("*").eq("wheat_batch_id", productID).order("created_at", { ascending: true }),
+    supabase.from("quality_reports").select("*").eq("subject_id", productID).order("created_at", { ascending: false }),
+  ]);
+  if (batchRes.error) throw new Error(batchRes.error.message);
+  const batch = batchRes.data;
+  const transfers = transferRes.data || [];
+  const reports = qualRes.data || [];
+  return {
+    product: {
+      ..._mapProduct({ ...batch, batch_transfers: transfers }),
+      quality: reports.length > 0 ? {
+        result:     reports[0].result,
+        moisture:   reports[0].moisture,
+        protein:    reports[0].protein,
+        gluten:     reports[0].gluten,
+        pesticides: reports[0].pesticides,
+        aflatoxin:  reports[0].aflatoxin,
+        testedBy:   reports[0].tested_by,
+        hasReport:  true,
+      } : { result: "—", hasReport: false },
+    },
+  };
 }
 
-export function queryQualityReports(username, subjectID) {
-  return request("/api/queryQualityReports", { query: { username, subjectID } });
+export async function queryQualityReports(username, subjectID) {
+  const { data, error } = await supabase
+    .from("quality_reports")
+    .select("*")
+    .eq("subject_id", subjectID)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return { reports: data.map(_mapReport) };
 }
 
-export function queryAllQualityReports(username) {
-  return request("/api/queryAllQualityReports", { query: { username } });
+export async function queryAllQualityReports(username) {
+  const { data, error } = await supabase
+    .from("quality_reports")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return { reports: data.map(_mapReport) };
 }
 
-export function queryProductMovements(username, productID) {
-  return request("/api/queryProductMovements", { query: { username, productID } });
+export async function queryProductMovements(username, productID) {
+  const { data, error } = await supabase
+    .from("batch_transfers")
+    .select("*")
+    .eq("wheat_batch_id", productID)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return {
+    movements: data.map((t) => ({
+      stage:      "Transfer",
+      fromEntity: t.from_entity_id,
+      toEntity:   t.to_entity_id,
+      date:       t.transfer_date || t.created_at?.split("T")[0],
+      location:   t.location,
+      lat:        null,
+      lng:        null,
+    })),
+  };
+}
+
+// ── Internal mappers ─────────────────────────────────────────────────────────
+
+function _mapBatch(b) {
+  return {
+    productID:      b.wheat_batch_id,
+    wheatBatchID:   b.wheat_batch_id,
+    entityID:       b.entity_id,
+    variety:        b.variety,
+    quantity:       b.quantity,
+    harvestDate:    b.harvest_date,
+    productionDate: b.harvest_date,
+    qrCode:         b.qr_code,
+    status:         b.status,
+    latitude:       b.latitude,
+    longitude:      b.longitude,
+    createdAt:      b.created_at,
+  };
+}
+
+function _mapProduct(b) {
+  const transfers = b.batch_transfers || [];
+  const journey = transfers.map((t, i) => ({
+    stage:  i === 0 ? "Farm" : "Transfer",
+    entity: t.to_entity_id,
+    date:   t.transfer_date || t.created_at?.split("T")[0],
+  }));
+  const geoPoints = b.latitude
+    ? [{ lat: b.latitude, lng: b.longitude }]
+    : [];
+  return {
+    ..._mapBatch(b),
+    productName:  `${b.variety || "Wheat"} — ${b.wheat_batch_id}`,
+    productType:  "Wheat",
+    farmOrigin:   { farmer: b.entity_id, district: "", province: "Punjab" },
+    currentStage: b.status,
+    journey,
+    geoPoints,
+    quality:      { result: "—", hasReport: false },
+  };
+}
+
+function _mapReport(r) {
+  return {
+    reportID:          r.report_id,
+    subjectID:         r.subject_id,
+    labID:             r.lab_id,
+    testedBy:          r.tested_by,
+    testDate:          r.test_date,
+    moisture:          r.moisture,
+    protein:           r.protein,
+    gluten:            r.gluten,
+    pesticidesDetected:r.pesticides,
+    aflatoxinDetected: r.aflatoxin,
+    result:            r.result,
+    grade:             r.grade,
+    hasReport:         true,
+    createdAt:         r.created_at,
+  };
 }
