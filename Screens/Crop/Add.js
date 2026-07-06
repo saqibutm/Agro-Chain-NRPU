@@ -73,13 +73,11 @@ const AddCrop = ({ navigation }) => {
 
 		if (mode === "queued") {
 			Alert.alert(
-				"Saved offline",
-				error
-					? `No connection — your crop was queued and will sync automatically.\n(${error})`
-					: "No connection — your crop was queued and will sync automatically."
+				t("savedOffline"),
+				error ? `${t("offlineQueue")}\n(${error})` : t("offlineQueue")
 			);
 		} else {
-			Alert.alert("Success", "Crop recorded on the blockchain.");
+			Alert.alert("Success", t("farmerRegistered"));
 		}
 		navigation.navigate("ValidCrop");
 	};

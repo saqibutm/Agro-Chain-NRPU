@@ -6,28 +6,14 @@ import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
 import { useAuth } from "../Services/AuthContext";
-import { Actions, queryProduct, queryProductMovements, queryQualityReports, queryWheatBatch } from "../Services/api";
+import { Actions, queryProduct, queryProductMovements, queryQualityReports } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getProductById, WHEAT_PRODUCTS } from "../Services/demoData";
 import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 import SyncStatusBar from "../Abstracts/SyncStatusBar";
-import { hasCoords } from "../Services/location";
 const { width, height } = Dimensions.get("window");
 
-// Extract geotagged custody points from a wheat batch's custodyHistory.
-function geoPointsFromBatch(batch) {
-    if (!batch) return [];
-    return (batch.custodyHistory || [])
-        .filter((p) => hasCoords(p.latitude, p.longitude))
-        .map((p) => ({
-            label: p.label,
-            latitude: Number(p.latitude),
-            longitude: Number(p.longitude),
-            timestamp: p.timestamp,
-        }));
-}
-
-// Build the consumer-facing product object from chaincode records.
+// Build the consumer-facing product object from Supabase records.
 function buildProduct(product, movements, reports) {
     // Use the most recent lab report, if any.
     const latest = (reports || []).slice().sort(
@@ -59,10 +45,10 @@ function buildProduct(product, movements, reports) {
             province: "—",
         },
         journey: (movements || []).map((m) => ({
-            stage: "Transfer",
-            entity: `${m.senderID} → ${m.receiverID}`,
-            location: `Qty ${m.quantityTransferred}`,
-            date: m.transactionDate,
+            stage: m.stage || "Transfer",
+            entity: `${m.fromEntity || "—"} → ${m.toEntity || "—"}`,
+            location: m.location || "—",
+            date: m.date || "—",
         })),
     };
 }
@@ -138,10 +124,7 @@ const ProductJourney = ({ navigation, route }) => {
             if (prodRes.product) {
                 const built = buildProduct(prodRes.product, movRes.movements, qualRes.reports);
                 let geo = [];
-                if (prodRes.product.wheatBatchID) {
-                    const batchRes = await queryWheatBatch(username, prodRes.product.wheatBatchID).catch(() => null);
-                    geo = geoPointsFromBatch(batchRes?.wheatBatch);
-                }
+                geo = prodRes.product.geoPoints || [];
                 setProduct(built);
                 setGeoPoints(geo);
                 setCachedAt(null);

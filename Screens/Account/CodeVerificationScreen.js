@@ -5,25 +5,44 @@ import { FontSize } from '../../Abstracts/Theme';
 import Container from '../../Abstracts/Container';
 import Backward from '../../Abstracts/Backward';
 import Button from '../../Abstracts/Button';
+import { supabase } from '../../Services/supabase'
+import { DEMO_MODE } from '../../Services/config'
 const { height, width } = Dimensions.get("screen")
 
-// Demo code — any 4+ digit entry is accepted since there is no backend endpoint.
 const DEMO_CODE = "1234"
 
 const CodeVerificationScreen = ({ route, navigation }) => {
     const [code, setCode] = useState("")
+    const [loading, setLoading] = useState(false)
     const { email } = route?.params ?? {}
 
-    const handleVerify = () => {
+    const handleVerify = async () => {
         if (code.length < 4) {
-            Alert.alert("Invalid code", "Please enter the 4-digit code sent to your email.")
+            Alert.alert("Invalid code", "Please enter the code sent to your account.")
             return
         }
-        if (code !== DEMO_CODE) {
-            Alert.alert("Incorrect code", `Demo code is ${DEMO_CODE}. In production, a real code will be emailed.`)
-            return
+        setLoading(true)
+        try {
+            if (DEMO_MODE) {
+                if (code !== DEMO_CODE) {
+                    Alert.alert("Incorrect code", `Demo code is ${DEMO_CODE}.`)
+                    setLoading(false)
+                    return
+                }
+            } else {
+                const { error } = await supabase.auth.verifyOtp({
+                    email,
+                    token: code,
+                    type: 'email',
+                })
+                if (error) throw error
+            }
+            navigation.navigate("CreateNewPassword", { email })
+        } catch (err) {
+            Alert.alert("Verification failed", err.message || "Invalid or expired code.")
+        } finally {
+            setLoading(false)
         }
-        navigation.navigate("CreateNewPassword", { email })
     }
 
     return (
@@ -32,14 +51,14 @@ const CodeVerificationScreen = ({ route, navigation }) => {
             <Container style={{ flex: 1, alignItems: 'center', marginTop: height * 0.05 }}>
                 <Text style={styles.title}>Verify Code</Text>
                 <Text style={{ color: "black", marginTop: height * 0.02, width: width * 0.74, fontSize: FontSize.F17, textAlign: "center" }}>
-                    Enter the security code sent to
-                    <Text style={{ fontWeight: "600" }}>{` `}{email}</Text>
+                    Enter the security code sent to your account
+                    {email ? <Text style={{ fontWeight: "600" }}>{` (${email.split("@")[0]})`}</Text> : null}
                 </Text>
                 <Input
                     style={{ marginTop: height * 0.03 }}
                     value={code}
                     setValue={setCode}
-                    placeholder={"1234"}
+                    placeholder={"Code"}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.05}
                     paddingVertical={height * 0.01}
@@ -48,12 +67,12 @@ const CodeVerificationScreen = ({ route, navigation }) => {
                     maxLength={6}
                 />
                 <Button
-                    text={"Verify Code"}
+                    text={loading ? "Verifying…" : "Verify Code"}
                     width={width * 0.86}
                     backgroundColor={"green"}
                     color={"white"}
-                    onPress={handleVerify}
-                    style={{ marginTop: height * 0.04 }}
+                    onPress={loading ? undefined : handleVerify}
+                    style={{ marginTop: height * 0.04, opacity: loading ? 0.7 : 1 }}
                 />
             </Container>
         </View>
@@ -66,11 +85,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'black',
     },
-    text: {
-        fontSize: FontSize.F18,
-        color: 'grey',
-        marginTop: height * 0.02
-    }
 })
 
 export default CodeVerificationScreen;

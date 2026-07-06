@@ -12,13 +12,6 @@ import { getTrackingItems } from '../Services/demoData';
 import { cacheGet, cacheSet, CacheKeys } from '../Services/cache';
 const { width, height } = Dimensions.get("window");
 
-// Fallback sample shown when the backend is unreachable.
-const sampleData = [
-    { id: "ABC", name: "Sunshine Flour Mills", stage: "Crop ID", date: "20-08-2024" },
-    { id: "DEF", name: "Metro Distribution", stage: "Product ID", date: "20-08-2024" },
-    { id: "GHI", name: "Al-Fatah Store", stage: "Product ID", date: "20-08-2024" },
-];
-
 const SupplyChainTracking = ({ navigation }) => {
     const { t } = useI18n();
     const { isOnline } = useSync();
