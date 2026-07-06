@@ -24,7 +24,7 @@ const Settings = ({ navigation }) => {
                 <View style={styles.avatar}>
                     <Text style={styles.avatarEmoji}>🧑🏽‍🌾</Text>
                 </View>
-                <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>Aslam</Text>
+                <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>{user?.username || t("farmer")}</Text>
             </View>
 
             {/* Language selector */}
