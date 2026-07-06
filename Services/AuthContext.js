@@ -8,11 +8,7 @@ import { login as apiLogin } from "./api";
 const SESSION_KEY = "@agrochain/session";
 const AuthContext = createContext(null);
 
-// ⚠️ TEMPORARY — DEV-ONLY SCREENSHOT BYPASS. Set back to false (or remove this
-// block) before committing/releasing. Only active in development (`__DEV__`).
-// When true, the app opens straight into the authenticated screens (which render
-// their sample/placeholder data) so screenshots can be captured without a backend.
-const DEV_SCREENSHOT_BYPASS = true;
+const DEV_SCREENSHOT_BYPASS = false;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // { username }

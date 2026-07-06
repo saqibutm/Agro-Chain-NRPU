@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { dispatch } from "./api";
 
 const QUEUE_KEY = "@agrochain/sync_queue";
+const MAX_ATTEMPTS = 5;
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -37,7 +38,17 @@ export async function enqueue(action, payload) {
 
 export async function pendingCount() {
   const queue = await getQueue();
-  return queue.length;
+  return queue.filter((r) => r.status !== "abandoned").length;
+}
+
+export async function abandonedItems() {
+  const queue = await getQueue();
+  return queue.filter((r) => r.status === "abandoned");
+}
+
+export async function discardAbandoned() {
+  const queue = await getQueue();
+  await saveQueue(queue.filter((r) => r.status !== "abandoned"));
 }
 
 export async function clearQueue() {
@@ -55,14 +66,19 @@ export async function processQueue() {
   const remaining = [];
 
   for (const record of queue) {
+    if (record.status === "abandoned") {
+      remaining.push(record);
+      continue;
+    }
     try {
       await dispatch(record.action, record.payload);
       succeeded += 1; // drop on success
     } catch (err) {
+      const attempts = record.attempts + 1;
       remaining.push({
         ...record,
-        status: "failed",
-        attempts: record.attempts + 1,
+        status: attempts >= MAX_ATTEMPTS ? "abandoned" : "failed",
+        attempts,
         error: err.message,
       });
     }
