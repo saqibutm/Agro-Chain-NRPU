@@ -45,7 +45,16 @@ const TransactionHistory = ({ navigation }) => {
                 }));
             } else {
                 const raw = await queryAllWheatBatches(username);
-                data = Array.isArray(raw) ? raw : (raw?.batches ?? raw?.result ?? []);
+                const batches = Array.isArray(raw) ? raw : (raw?.batches ?? []);
+                data = batches.map((b) => ({
+                    batchID:     b.productID || b.wheatBatchID,
+                    batchNumber: b.wheatBatchID || b.productID,
+                    entityID:    b.entityID || "—",
+                    district:    "—",
+                    date:        b.harvestDate || b.productionDate || "—",
+                    cropType:    b.variety || "Wheat",
+                    status:      b.status || "Created",
+                }));
             }
             setBatches(data);
             setCachedAt(Date.now());

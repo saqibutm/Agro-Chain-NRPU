@@ -43,8 +43,8 @@
       "bundler": "metro"
     },
     "extra": {
-      "supabaseUrl": "https://REPLACE_WITH_YOUR_PROJECT_ID.supabase.co",
-      "supabaseAnonKey": "REPLACE_WITH_YOUR_SUPABASE_ANON_KEY",
+      "supabaseUrl": "https://jmclztmuewbjcvotnyvh.supabase.co",
+      "supabaseAnonKey": "sb_publishable_-VC-zDcIdfODIvnmnmJJqQ_dLnD-gWz",
       "defaultUsername": "appUser"
     },
     "plugins": [
