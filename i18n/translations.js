@@ -148,6 +148,13 @@ export const translations = {
     // Product detail
     productDetails: "Product Details",
     noProduct: "Product not found",
+
+    // Roles
+    selectRole: "Select Role",
+    roleMill: "Mill Operator",
+    roleLab: "Lab Technician",
+    roleRegulator: "Regulator",
+    roleConsumer: "Consumer",
   },
   ur: {
     // App
@@ -296,5 +303,12 @@ export const translations = {
     // Product detail
     productDetails: "پروڈکٹ کی تفصیل",
     noProduct: "پروڈکٹ نہیں ملا",
+
+    // Roles
+    selectRole: "کردار منتخب کریں",
+    roleMill: "مل آپریٹر",
+    roleLab: "لیب ٹیکنیشن",
+    roleRegulator: "ریگولیٹر",
+    roleConsumer: "صارف",
   },
 };

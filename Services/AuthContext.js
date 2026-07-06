@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { login as apiLogin } from "./api";
+import { DEMO_MODE } from "./config";
 
 const SESSION_KEY = "@agrochain/session";
 const AuthContext = createContext(null);
@@ -11,7 +12,7 @@ const AuthContext = createContext(null);
 const DEV_SCREENSHOT_BYPASS = false;
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // { username }
+  const [user, setUser] = useState(null); // { username, role }
   const [loading, setLoading] = useState(true); // restoring persisted session
 
   // Restore any saved session on launch.
@@ -31,9 +32,20 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Verify credentials with the backend, then persist the session.
-  const signIn = useCallback(async (username, password) => {
-    const res = await apiLogin(username.trim(), password); // throws on failure
-    const session = { username: res.username || username.trim() };
+  // `role` is selected by the user on the sign-in screen; the API response
+  // can override it if the backend returns a role field.
+  const signIn = useCallback(async (username, password, role = "farmer") => {
+    let sessionUsername = username.trim();
+    let sessionRole = role;
+    if (DEMO_MODE) {
+      // No backend configured — accept any credentials for demo purposes.
+      sessionUsername = sessionUsername || "demo";
+    } else {
+      const res = await apiLogin(sessionUsername, password); // throws on failure
+      sessionUsername = res.username || sessionUsername;
+      sessionRole = res.role || role;
+    }
+    const session = { username: sessionUsername, role: sessionRole };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return session;

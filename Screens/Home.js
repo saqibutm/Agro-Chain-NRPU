@@ -12,6 +12,59 @@ import { getKpis as getDemoKpis, getRecentActivity } from "../Services/demoData"
 import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 const { width, height } = Dimensions.get("window");
 
+// Per-role quick-action lists (labelKey → i18n key, screen → navigator name).
+const ROLE_ACTIONS = {
+    farmer:    [
+        { labelKey: "newBatch",          screen: "AddCrop"       },
+        { labelKey: "qrScanner",         screen: "QRScanner"     },
+        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
+        { labelKey: "faqs",              screen: "FAQs"          },
+    ],
+    mill:      [
+        { labelKey: "addMill",           screen: "AddMill"       },
+        { labelKey: "qrScanner",         screen: "QRScanner"     },
+        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
+        { labelKey: "faqs",              screen: "FAQs"          },
+    ],
+    lab:       [
+        { labelKey: "recordQualityTest", screen: "LabDashboard"  },
+        { labelKey: "qrScanner",         screen: "QRScanner"     },
+        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
+        { labelKey: "faqs",              screen: "FAQs"          },
+    ],
+    regulator: [
+        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
+        { labelKey: "qrScanner",         screen: "QRScanner"     },
+        { labelKey: "camera",            screen: "CameraScreen"  },
+        { labelKey: "faqs",              screen: "FAQs"          },
+    ],
+    consumer:  [
+        { labelKey: "qrScanner",         screen: "QRScanner"     },
+        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
+        { labelKey: "productJourney",    screen: "ProductJourney"},
+        { labelKey: "faqs",              screen: "FAQs"          },
+    ],
+};
+
+// KPI indices to show per role (from the kpis[] array built in component):
+// 0=batchesCreated  1=inTransit  2=delivered  3=products  4=passRate  5=qualityFlags
+const ROLE_KPIS = {
+    farmer:    [0, 1, 2, 5],
+    mill:      [0, 1, 2, 4],
+    lab:       [4, 5, 0, 1],
+    regulator: [0, 1, 2, 3, 4, 5],
+    consumer:  [2, 3, 4, 5],
+};
+
+// Greeting i18n key per role.
+const ROLE_GREETING = {
+    farmer:    "farmer",
+    mill:      "roleMill",
+    lab:       "roleLab",
+    regulator: "roleRegulator",
+    consumer:  "roleConsumer",
+};
+
 // Derive dashboard KPIs from on-chain batches/products/quality reports.
 function computeKpis(batches, products, reports) {
 	const created = batches.length;
@@ -57,6 +110,7 @@ const Home = ({ navigation }) => {
 	const { isOnline } = useSync();
 	const { user } = useAuth();
 	const username = user?.username || DEFAULT_USERNAME;
+	const role = user?.role || "farmer";
 
 	const [stats, setStats] = useState(DEMO_MODE ? getDemoKpis() : { created: 0, inTransit: 0, delivered: 0, products: 0, passRate: null, qualityFlags: 0 });
 	const [loading, setLoading] = useState(false);
@@ -115,14 +169,15 @@ const Home = ({ navigation }) => {
 		{ value: v(stats.qualityFlags), label: t("qualityFlags"), color: flagsColor, onPress: () => navigation.navigate("FraudAlerts") },
 	];
 
-	const actions = [
-		{ label: t("newBatch"), screen: "AddCrop" },
-		{ label: t("camera"), screen: "CameraScreen" },
-		{ label: t("qrScanner"), screen: "QRScanner" },
-		{ label: t("fraudAlerts"), screen: "FraudAlerts" },
-		{ label: t("recordQualityTest"), screen: "LabDashboard" },
-		{ label: t("faqs"), screen: "FAQs" },
-	];
+	const roleActions = (ROLE_ACTIONS[role] || ROLE_ACTIONS.farmer)
+		// ProductJourney needs a productID param — open SupplyChainTracking instead
+		.map((a) => a.screen === "ProductJourney"
+			? { ...a, screen: "QRScanner" }
+			: a
+		)
+		.map((a) => ({ label: t(a.labelKey), screen: a.screen }));
+
+	const roleKpiIndices = ROLE_KPIS[role] || ROLE_KPIS.farmer;
 
 	const activity = DEMO_MODE
 		? getRecentActivity()
@@ -140,7 +195,7 @@ const Home = ({ navigation }) => {
 				showsVerticalScrollIndicator={false}
 				refreshControl={<RefreshControl refreshing={loading} onRefresh={loadData} colors={["green"]} />}
 			>
-				<Text style={styles.greeting}>{t("farmer")}</Text>
+				<Text style={styles.greeting}>{t(ROLE_GREETING[role] || "farmer")}</Text>
 				<Text style={styles.subtitle}>{t("dashboard")}</Text>
 				{cachedAt && (
 					<Text style={styles.staleNote}>
@@ -148,17 +203,19 @@ const Home = ({ navigation }) => {
 					</Text>
 				)}
 
-				{/* KPI grid */}
+				{/* KPI grid — filtered by role */}
 				<View style={styles.kpiGrid}>
-					{kpis.map((k, i) => (
-						<KpiCard key={i} {...k} />
-					))}
+					{kpis
+						.filter((_, i) => roleKpiIndices.includes(i))
+						.map((k, i) => (
+							<KpiCard key={i} {...k} />
+						))}
 				</View>
 
 				{/* Quick actions */}
 				<Text style={styles.sectionTitle}>{t("quickActions")}</Text>
 				<View style={styles.actionGrid}>
-					{actions.map((a, i) => (
+					{roleActions.map((a, i) => (
 						<TouchableOpacity
 							key={i}
 							activeOpacity={0.8}
