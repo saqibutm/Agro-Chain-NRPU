@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Animated } from "react-native";
-import { CameraView, Camera } from "expo-camera/next";
+import { CameraView, Camera } from "expo-camera";
 
 const QRScanner = ({ navigation }) => {
     const [hasPermission, setHasPermission] = useState(null);

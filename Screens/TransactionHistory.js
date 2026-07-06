@@ -1,122 +1,114 @@
-import React from 'react'
-import { ScrollView, StyleSheet, Text, View, Dimensions } from 'react-native'
+import React, { useEffect, useState, useCallback } from 'react'
+import { ScrollView, StyleSheet, Text, View, Dimensions, ActivityIndicator, RefreshControl } from 'react-native'
 import Backward from "../Abstracts/Backward";
+import { queryAllWheatBatches } from "../Services/api";
+import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
+import { useAuth } from "../Services/AuthContext";
+import { useI18n } from "../i18n/I18nContext";
+import { ALL_PRODUCTS } from "../Services/demoData";
+import { cacheGet, cacheSet } from "../Services/cache";
 const { width, height } = Dimensions.get("window");
 
+const CACHE_KEY = "@agrochain/cache/wheat_batches";
+
 const TransactionHistory = ({ navigation }) => {
-    const data = [
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-        {
-            cropId: "1",
-            batchNumber: "100",
-            address: "Clock Tower, Fasialabad, Pakistan",
-            date: "20-08-2024"
-        },
-    ]
+    const { t } = useI18n();
+    const { user } = useAuth();
+    const username = user?.username || DEFAULT_USERNAME;
+
+    const [batches, setBatches] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [cachedAt, setCachedAt] = useState(null);
+
+    const load = useCallback(async (isRefresh = false) => {
+        if (!isRefresh) {
+            const cached = await cacheGet(CACHE_KEY);
+            if (cached) {
+                setBatches(cached.data);
+                setCachedAt(cached.savedAt);
+                setLoading(false);
+            }
+        }
+
+        try {
+            let data;
+            if (DEMO_MODE) {
+                data = ALL_PRODUCTS.map(p => ({
+                    batchID: p.productID,
+                    batchNumber: p.productID,
+                    entityID: p.farmOrigin?.farmer || "—",
+                    district: p.farmOrigin?.district || "—",
+                    date: p.productionDate || "—",
+                    cropType: p.commodity || "Wheat",
+                    status: p.status || "Delivered",
+                }));
+            } else {
+                const raw = await queryAllWheatBatches(username);
+                data = Array.isArray(raw) ? raw : (raw?.result ?? []);
+            }
+            setBatches(data);
+            setCachedAt(Date.now());
+            await cacheSet(CACHE_KEY, data);
+        } catch {
+            // Keep cached/demo data on error
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, [username]);
+
+    useEffect(() => { load(); }, [load]);
+
+    const onRefresh = () => { setRefreshing(true); load(true); };
+
+    const formatAge = (ts) => {
+        if (!ts) return "";
+        const mins = Math.floor((Date.now() - ts) / 60000);
+        if (mins < 1) return "just now";
+        if (mins < 60) return `${mins}m ago`;
+        return `${Math.floor(mins / 60)}h ago`;
+    };
 
     return (
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: height * 0.06, backgroundColor: "white" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Backward onPress={() => navigation.goBack()} />
-                <Text style={styles.headText}>Transaction History</Text>
+                <Text style={styles.headText}>{t("transactionHistory")}</Text>
             </View>
-            <ScrollView style={{ marginTop: height * 0.02 }} showsVerticalScrollIndicator={false}>
-                {data.map((transaction, index) => (
-                    <View key={index} style={[styles.transactionItem, index === data.length - 1 ? { borderBottomWidth: 0, paddingBottom: height * 0.03 } : { borderBottomWidth: 1 }]}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                            <View>
-                                <Text style={{ fontWeight: 600, fontSize: 16 }}>Crop ID: {index + 1}</Text>
-                                <Text style={{ fontWeight: 700, fontSize: 16, color: "gray" }}>Batch Number: {transaction.batchNumber}</Text>
+            {cachedAt && (
+                <Text style={styles.syncNote}>{t("lastSynced")} {formatAge(cachedAt)}</Text>
+            )}
+            {loading ? (
+                <ActivityIndicator size="large" color="green" style={{ marginTop: height * 0.1 }} />
+            ) : batches.length === 0 ? (
+                <Text style={styles.empty}>{t("noData")}</Text>
+            ) : (
+                <ScrollView
+                    style={{ marginTop: height * 0.02 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="green" />}
+                >
+                    {batches.map((item, index) => (
+                        <View
+                            key={item.batchID || index}
+                            style={[styles.item, index === batches.length - 1 && { borderBottomWidth: 0, paddingBottom: height * 0.03 }]}
+                        >
+                            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                                <View>
+                                    <Text style={styles.id}>{t("batchId")}: {item.batchNumber || item.batchID}</Text>
+                                    <Text style={styles.sub}>{t("farmer")}: {item.entityID}</Text>
+                                </View>
+                                <Text style={styles.date}>{item.date}</Text>
                             </View>
-                            <Text style={{ fontWeight: 600, fontSize: 14 }}>Date: {transaction.date}</Text>
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 2 }}>
+                                <Text style={styles.location}>{item.district}</Text>
+                                <Text style={[styles.status, item.status === "Delivered" && styles.statusDone]}>{item.status}</Text>
+                            </View>
                         </View>
-                        <Text style={{ color: "#575757" }}>Address: {transaction.address}</Text>
-                    </View>
-                ))}
-            </ScrollView>
+                    ))}
+                </ScrollView>
+            )}
         </View>
     )
 }
@@ -128,11 +120,48 @@ const styles = StyleSheet.create({
         textAlign: "center",
         flex: 1
     },
-    transactionItem: {
+    syncNote: {
+        textAlign: "center",
+        color: "#888",
+        fontSize: 12,
+        marginTop: 4,
+    },
+    empty: {
+        textAlign: "center",
+        color: "#888",
+        marginTop: height * 0.1,
+        fontSize: 16,
+    },
+    item: {
         marginVertical: height * 0.01,
         borderBottomWidth: 1,
         borderBottomColor: "lightgray",
-        paddingBottom: 4
+        paddingBottom: 6,
+    },
+    id: {
+        fontWeight: "600",
+        fontSize: 15,
+    },
+    sub: {
+        fontSize: 14,
+        color: "gray",
+    },
+    date: {
+        fontWeight: "600",
+        fontSize: 13,
+        color: "#444",
+    },
+    location: {
+        color: "#575757",
+        fontSize: 13,
+    },
+    status: {
+        fontSize: 12,
+        fontWeight: "600",
+        color: "gray",
+    },
+    statusDone: {
+        color: "green",
     },
 })
 

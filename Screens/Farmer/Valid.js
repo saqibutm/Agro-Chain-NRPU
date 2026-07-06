@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, Dimensions } from "react-native";
+import { StyleSheet, Text, Dimensions, Alert } from "react-native";
 import Container from "../../Abstracts/Container";
 import Input from "../../Abstracts/TextInput";
 import Button from "../../Abstracts/Button";
@@ -8,16 +8,14 @@ const { width, height } = Dimensions.get("window");
 
 const ValidFarmer = ({ navigation }) => {
 	const { t } = useI18n();
-	const [form, setForm] = useState({
-		farmer_id: ""
-	});
-
-	const handleChange = (e, key) => {
-		setForm({ ...form, [key]: e });
-	};
+	const [form, setForm] = useState({ farmer_id: "" });
 
 	const handleSubmit = () => {
-		// On submit, send the form
+		if (!form.farmer_id.trim()) {
+			Alert.alert(t("missingFields"), `${t("farmerId")} is required.`);
+			return;
+		}
+		navigation.navigate("AddMill", { farmer_id: form.farmer_id });
 	};
 
 	return (
@@ -26,7 +24,7 @@ const ValidFarmer = ({ navigation }) => {
 			<Input
 				style={{ borderBottomWidth: 1, marginVertical: 8, marginTop: height * 0.04 }}
 				value={form.farmer_id}
-				setValue={(e) => handleChange(e, "farmer_id")}
+				setValue={(e) => setForm({ farmer_id: e })}
 				placeholder={t("farmerId")}
 				width={null}
 				fontSize={20}
@@ -34,11 +32,11 @@ const ValidFarmer = ({ navigation }) => {
 				borderWidth={0}
 			/>
 			<Button
-				text={t("login")}
+				text={t("confirm")}
 				width={width * 0.86}
-				onPress={() => navigation.navigate("AddMill")}
+				onPress={handleSubmit}
 				backgroundColor={"green"}
-				color={'white'}
+				color={"white"}
 				style={{ marginTop: height * 0.03 }}
 			/>
 		</Container>

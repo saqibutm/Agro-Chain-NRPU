@@ -1,4 +1,4 @@
-import { Dimensions, View, StyleSheet, Text, } from 'react-native'
+import { Dimensions, View, StyleSheet, Text, Alert } from 'react-native'
 import React, { useState } from 'react'
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
@@ -9,10 +9,18 @@ const { height, width } = Dimensions.get("screen")
 
 const ForgetPassword = ({ navigation }) => {
     const [email, setEmail] = useState("")
+    const [loading, setLoading] = useState(false)
 
-    const handleGetCodePress = () => {
-        navigation.navigate("CodeVerificationScreen", { email });
-    };
+    const handleSend = async () => {
+        if (!email.trim()) {
+            Alert.alert("Email required", "Please enter your email address.")
+            return
+        }
+        setLoading(true)
+        await new Promise(r => setTimeout(r, 800))
+        setLoading(false)
+        navigation.navigate("CodeVerificationScreen", { email: email.trim() })
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: "white" }}>
@@ -30,14 +38,16 @@ const ForgetPassword = ({ navigation }) => {
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.01}
                     backgroundColor={"white"}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                 />
                 <Button
-                    text={"Send Email"}
+                    text={loading ? "Sending…" : "Send Code"}
                     width={width * 0.86}
                     backgroundColor={"green"}
                     color={"white"}
-                    onPress={handleGetCodePress}
-                    style={{ marginTop: height * 0.04 }}
+                    onPress={handleSend}
+                    style={{ marginTop: height * 0.04, opacity: loading ? 0.7 : 1 }}
                 />
             </Container>
         </View>

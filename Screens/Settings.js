@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking, Alert } from "react-native";
 import Container from "../Abstracts/Container";
 import Backward from "../Abstracts/Backward";
 import { FontSize } from "../Abstracts/Theme";
@@ -51,7 +51,12 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity style={[styles.btn, { marginTop: height * 0.03 }]} onPress={() => navigation.navigate("About")}>
                 <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("about")}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.btn}>
+            <TouchableOpacity
+                style={styles.btn}
+                onPress={() => Linking.openURL("mailto:saqibutm@outlook.com").catch(() =>
+                    Alert.alert(t("contactUs"), "saqibutm@outlook.com")
+                )}
+            >
                 <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("contactUs")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, { backgroundColor: "red", borderWidth: 0 }]} onPress={signOut}>

@@ -1,4 +1,4 @@
-import { Dimensions, View, StyleSheet, Text, } from 'react-native'
+import { Dimensions, View, StyleSheet, Text, Alert } from 'react-native'
 import React, { useState } from 'react'
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
@@ -20,6 +20,24 @@ const CreateNewPassword = ({ navigation }) => {
         }));
     };
 
+    const handleReset = () => {
+        if (!formData.password || !formData.confirmPassword) {
+            Alert.alert("Required", "Please fill in both password fields.")
+            return
+        }
+        if (formData.password.length < 6) {
+            Alert.alert("Too short", "Password must be at least 6 characters.")
+            return
+        }
+        if (formData.password !== formData.confirmPassword) {
+            Alert.alert("Mismatch", "Passwords do not match.")
+            return
+        }
+        Alert.alert("Password reset", "Your password has been updated successfully.", [
+            { text: "Sign In", onPress: () => navigation.navigate("SingIn") }
+        ])
+    }
+
     return (
         <View style={{ flex: 1, backgroundColor: "white" }}>
             <Backward onPress={() => navigation.goBack()} width={26} height={26} style={{ marginLeft: width * 0.055, marginTop: height * 0.06 }} />
@@ -38,6 +56,7 @@ const CreateNewPassword = ({ navigation }) => {
                     paddingVertical={height * 0.014}
                     backgroundColor={"white"}
                     style={{ marginTop: height * 0.04 }}
+                    secureTextEntry
                 />
                 <Input
                     value={formData.confirmPassword}
@@ -49,13 +68,14 @@ const CreateNewPassword = ({ navigation }) => {
                     paddingVertical={height * 0.014}
                     backgroundColor={"white"}
                     style={{ marginTop: height * 0.016 }}
+                    secureTextEntry
                 />
                 <Button
                     text={"Reset Password"}
                     width={width * 0.86}
                     backgroundColor={"green"}
                     color={"white"}
-                    // onPress={() => navigation.navigate("CreateNewPassword")}
+                    onPress={handleReset}
                     style={{ marginTop: height * 0.04 }}
                 />
             </Container>
