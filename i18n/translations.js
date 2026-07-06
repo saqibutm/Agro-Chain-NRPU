@@ -127,6 +127,25 @@ export const translations = {
     fundingAgency: "Funding Agency",
     hostInstitution: "Host Institution",
     projectNumber: "NRPU Project No.",
+
+    // Transaction history
+    transactionHistory: "Transaction History",
+    batchId: "Batch ID",
+    farmerName: "Farmer",
+    cropName: "Crop Name",
+    lastSynced: "Last synced",
+    quantity: "Quantity",
+
+    // Validation / confirmation
+    confirm: "Confirm",
+    missingFields: "Missing fields",
+    farmerRegistered: "Farmer registered on the blockchain.",
+    millBatchReceived: "Batch transferred to mill on the blockchain.",
+    offlineQueue: "No connection — your record was queued and will sync automatically.",
+
+    // Product detail
+    productDetails: "Product Details",
+    noProduct: "Product not found",
   },
   ur: {
     // App
@@ -254,5 +273,24 @@ export const translations = {
     fundingAgency: "فنڈنگ ادارہ",
     hostInstitution: "میزبان ادارہ",
     projectNumber: "این آر پی یو پروجیکٹ نمبر",
+
+    // Transaction history
+    transactionHistory: "لین دین کی تاریخ",
+    batchId: "بیچ شناخت",
+    farmerName: "کسان",
+    cropName: "فصل کا نام",
+    lastSynced: "آخری ہم آہنگی",
+    quantity: "مقدار",
+
+    // Validation / confirmation
+    confirm: "تصدیق کریں",
+    missingFields: "لازمی خانے",
+    farmerRegistered: "کسان بلاک چین پر ریکارڈ ہو گیا۔",
+    millBatchReceived: "بیچ بلاک چین پر مل کو منتقل ہو گیا۔",
+    offlineQueue: "کنیکشن نہیں — آپ کا ریکارڈ محفوظ ہو گیا اور خود بخود ہم آہنگ ہو جائے گا۔",
+
+    // Product detail
+    productDetails: "پروڈکٹ کی تفصیل",
+    noProduct: "پروڈکٹ نہیں ملا",
   },
 };

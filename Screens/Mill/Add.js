@@ -1,14 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Platform, Dimensions, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Platform, Dimensions, StyleSheet, Alert } from "react-native";
 import Container from "../../Abstracts/Container";
 import Input from "../../Abstracts/TextInput";
 import Button from "../../Abstracts/Button";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import SyncStatusBar from "../../Abstracts/SyncStatusBar";
+import Backward from "../../Abstracts/Backward";
+import { useSync } from "../../Services/SyncContext";
+import { Actions } from "../../Services/api";
+import { DEFAULT_USERNAME } from "../../Services/config";
 import { useI18n } from "../../i18n/I18nContext";
+import { useAuth } from "../../Services/AuthContext";
+import { FontSize } from "../../Abstracts/Theme";
 const { width, height } = Dimensions.get("window");
 
-const AddMill = ({ navigation }) => {
+const AddMill = ({ route, navigation }) => {
+	const { submit } = useSync();
 	const { t } = useI18n();
+	const { user } = useAuth();
+	const username = user?.username || DEFAULT_USERNAME;
+	// farmer_id may be passed from ValidCrop / ValidFarmer
+	const fromEntityID = route?.params?.farmer_id || username;
+
 	const [form, setForm] = useState({
 		mill_name: "",
 		location: "",
@@ -17,57 +30,69 @@ const AddMill = ({ navigation }) => {
 		product_date: "",
 		expiry_date: ""
 	});
-	const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+	const [datePickerKey, setDatePickerKey] = useState(null); // "product_date" | "expiry_date"
 
-	const showDatePicker = () => {
-		setDatePickerVisibility(true);
-	};
+	const showDatePicker = (key) => setDatePickerKey(key);
+	const hideDatePicker = () => setDatePickerKey(null);
 
-	const hideDatePicker = () => {
-		setDatePickerVisibility(false);
-	};
-
-	const handleConfirm = (date, key) => {
-		if (date) {
-			setForm({
-				...form,
-				[key]: date.toISOString().split("T")[0]
-			});
+	const handleConfirm = (date) => {
+		if (date && datePickerKey) {
+			setForm({ ...form, [datePickerKey]: date.toISOString().split("T")[0] });
 		}
 		hideDatePicker();
 	};
 
-	const handleChange = (e, key) => {
-		setForm({
-			...form,
-			[key]: e
-		});
+	const handleChange = (value, key) => {
+		setForm({ ...form, [key]: value });
 	};
 
-	const handleSubmit = () => {
-		// On submit, send the form
-	};
+	const handleSubmit = async () => {
+		if (!form.mill_name || !form.batch_number) {
+			Alert.alert(t("missingFields"), `${t("millName")} and ${t("batchNumber")} are required.`);
+			return;
+		}
 
-	useEffect(() => {}, [form]);
+		const payload = {
+			username,
+			fromEntityID,
+			toEntityID: form.mill_name,
+			wheatBatchID: form.batch_number,
+			quantity: parseFloat(form.quantity_received) || 0,
+			transferDate: form.product_date,
+			location: form.location,
+		};
+
+		const { mode, error } = await submit(Actions.SEND_WHEAT_BATCH, payload);
+
+		if (mode === "queued") {
+			Alert.alert(
+				t("savedOffline"),
+				error ? `${t("offlineQueue")}\n(${error})` : t("offlineQueue")
+			);
+		} else {
+			Alert.alert("Success", t("millBatchReceived"));
+		}
+		navigation.navigate("ValidMill");
+	};
 
 	return (
 		<View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-			<Container
-				style={{
-					alignItems: "center",
-					justifyContent: "flex-start",
-					paddingHorizontal: 20,
-					paddingVertical: 30,
-					flex: 1
-				}}>
-				<Text style={styles.headText}>{t("addMill")}</Text>
+			<Container style={{
+				alignItems: "center", justifyContent: "flex-start",
+				paddingHorizontal: 20, paddingVertical: 30, flex: 1
+			}}>
+				<SyncStatusBar />
+				<View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+					<Backward onPress={() => navigation.goBack()} />
+					<Text style={styles.headText}>{t("addMill")}</Text>
+				</View>
 				<Input
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
 					value={form.mill_name}
 					setValue={(e) => handleChange(e, "mill_name")}
 					placeholder={t("millName")}
 					width={width * 0.86}
-					fontSize={18}
+					fontSize={FontSize.F18}
 					borderRadius={0}
 					borderWidth={0}
 				/>
@@ -77,7 +102,7 @@ const AddMill = ({ navigation }) => {
 					setValue={(e) => handleChange(e, "location")}
 					placeholder={t("location")}
 					width={width * 0.86}
-					fontSize={18}
+					fontSize={FontSize.F18}
 					borderRadius={0}
 					borderWidth={0}
 				/>
@@ -87,7 +112,7 @@ const AddMill = ({ navigation }) => {
 					setValue={(e) => handleChange(e, "batch_number")}
 					placeholder={t("batchNumber")}
 					width={width * 0.86}
-					fontSize={18}
+					fontSize={FontSize.F18}
 					borderRadius={0}
 					borderWidth={0}
 				/>
@@ -97,7 +122,7 @@ const AddMill = ({ navigation }) => {
 					setValue={(e) => handleChange(e, "quantity_received")}
 					placeholder={t("quantityReceived")}
 					width={width * 0.86}
-					fontSize={18}
+					fontSize={FontSize.F18}
 					borderRadius={0}
 					borderWidth={0}
 					keyboardType={"numeric"}
@@ -105,76 +130,56 @@ const AddMill = ({ navigation }) => {
 				{Platform.OS === "web" ? (
 					<input
 						style={{
-							width: "90%",
-							border: "0px",
-							backgroundColor: "transparent",
-							paddingTop: 6,
-							paddingBottom: 6,
-							paddingLeft: 7,
-							fontSize: 20,
-							borderBottomWidth: 1,
-							borderBottomStyle: "solid",
-							borderBottomColor: "#aaaaaa"
+							width: "90%", border: "0px", backgroundColor: "transparent",
+							paddingTop: 6, paddingBottom: 6, paddingLeft: 7, fontSize: FontSize.F18,
+							borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: "#aaaaaa"
 						}}
 						type="date"
-						value={form.date_harvested}
-						onChange={(e) => handleChange(e.target.value, "production_date")}
+						value={form.product_date}
+						onChange={(e) => handleChange(e.target.value, "product_date")}
 					/>
 				) : (
 					<Button
-						text={t("productionDate")}
-						onPress={(e) => showDatePicker(e, "production_date")}
-						fontSize={18}
+						text={`${t("productionDate")} ${form.product_date || ""}`}
+						onPress={() => showDatePicker("product_date")}
+						fontSize={FontSize.F18}
 						width={width * 0.86}
-						style={{ borderBottomWidth: 0.5, marginVertical: 3 }}
+						justifyContent={"flex-start"}
+						paddingHorizontal={5}
+						style={{ borderBottomWidth: 0.5, marginVertical: 3, alignSelf: "start" }}
 					/>
 				)}
-				{form.product_date && <Text>{`Production Date: ${form.product_date}`}</Text>}
 				{Platform.OS === "web" ? (
 					<input
 						style={{
-							width: "90%",
-							border: "0px",
-							backgroundColor: "transparent",
-							paddingTop: 6,
-							paddingBottom: 6,
-							paddingLeft: 7,
-							fontSize: 20,
-							borderBottomWidth: 1,
-							borderBottomStyle: "solid",
-							borderBottomColor: "#aaaaaa"
+							width: "90%", border: "0px", backgroundColor: "transparent",
+							paddingTop: 6, paddingBottom: 6, paddingLeft: 7, fontSize: FontSize.F18,
+							borderBottomWidth: 1, borderBottomStyle: "solid", borderBottomColor: "#aaaaaa"
 						}}
 						type="date"
-						value={form.date_harvested}
+						value={form.expiry_date}
 						onChange={(e) => handleChange(e.target.value, "expiry_date")}
 					/>
 				) : (
 					<Button
-						text={t("expiryDate")}
-						// onPress={showDatePicker}
-						fontSize={18}
-						onPress={(e) => showDatePicker(e, "expiry_date")}
+						text={`${t("expiryDate")} ${form.expiry_date || ""}`}
+						onPress={() => showDatePicker("expiry_date")}
+						fontSize={FontSize.F18}
 						width={width * 0.86}
-						style={{ borderBottomWidth: 0.5, marginVertical: 3 }}
+						justifyContent={"flex-start"}
+						paddingHorizontal={5}
+						style={{ borderBottomWidth: 0.5, marginVertical: 3, alignSelf: "start" }}
 					/>
 				)}
-				{form.product_date && <Text>{`Expiry Date: ${form.product_date}`}</Text>}
 				<DateTimePickerModal
-					isVisible={isDatePickerVisible}
+					isVisible={datePickerKey !== null}
 					mode="date"
-					onConfirm={(e) => handleConfirm(e, "product_date")}
-					onCancel={hideDatePicker}
-				/>
-				{form.expiry_date && <Text>{`Expiry Date: ${form.expiry_date}`}</Text>}
-				<DateTimePickerModal
-					isVisible={isDatePickerVisible}
-					mode="date"
-					onConfirm={(e) => handleConfirm(e, "expiry_date")}
+					onConfirm={handleConfirm}
 					onCancel={hideDatePicker}
 				/>
 				<Button
 					text={t("addMill")}
-					onPress={() => navigation.navigate("ValidFarmer")}
+					onPress={handleSubmit}
 					width={width * 0.86}
 					color={"white"}
 					backgroundColor={"green"}
@@ -187,11 +192,12 @@ const AddMill = ({ navigation }) => {
 
 const styles = StyleSheet.create({
 	headText: {
-		fontSize: 26,
+		fontSize: FontSize.F26,
 		fontWeight: "bold",
 		marginBottom: 20,
 		marginTop: height * 0.04,
-		textAlign: "center"
+		textAlign: "center",
+		flex: 1,
 	}
 })
 
