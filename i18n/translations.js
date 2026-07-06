@@ -155,6 +155,7 @@ export const translations = {
     roleLab: "Lab Technician",
     roleRegulator: "Regulator",
     roleConsumer: "Consumer",
+    roleAdmin: "Admin",
   },
   ur: {
     // App
@@ -310,5 +311,6 @@ export const translations = {
     roleLab: "لیب ٹیکنیشن",
     roleRegulator: "ریگولیٹر",
     roleConsumer: "صارف",
+    roleAdmin: "ایڈمن",
   },
 };

@@ -8,7 +8,7 @@ create table if not exists public.profiles (
   id       uuid primary key references auth.users(id) on delete cascade,
   username text unique not null,
   role     text not null default 'farmer'
-    check (role in ('farmer','mill','lab','regulator','consumer'))
+    check (role in ('farmer','mill','lab','regulator','consumer','admin'))
 );
 
 -- Auto-create profile row when a new auth user is created.

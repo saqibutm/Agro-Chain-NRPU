@@ -14,6 +14,7 @@ const ROLES = [
     { key: "lab",       labelKey: "roleLab"        },
     { key: "regulator", labelKey: "roleRegulator"  },
     { key: "consumer",  labelKey: "roleConsumer"   },
+    { key: "admin",     labelKey: "roleAdmin"      },
 ];
 
 export default function SingIn({ navigation }) {
