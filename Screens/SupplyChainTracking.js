@@ -24,8 +24,8 @@ const SupplyChainTracking = ({ navigation }) => {
     const { isOnline } = useSync();
     const { user } = useAuth();
     const username = user?.username || DEFAULT_USERNAME;
-    const [items, setItems] = useState(DEMO_MODE ? getTrackingItems() : sampleData);
-    const [loading, setLoading] = useState(false);
+    const [items, setItems] = useState(DEMO_MODE ? getTrackingItems() : []);
+    const [loading, setLoading] = useState(!DEMO_MODE);
     const [live, setLive] = useState(DEMO_MODE);
     const [cachedAt, setCachedAt] = useState(null);
 

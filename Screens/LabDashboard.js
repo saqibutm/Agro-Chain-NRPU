@@ -70,6 +70,10 @@ const LabDashboard = ({ navigation }) => {
 			Alert.alert(t("recordQualityTest"), t("fillRequired"));
 			return;
 		}
+		if (!form.moisture && !form.protein && !form.gluten) {
+			Alert.alert(t("recordQualityTest"), t("fillNumericFields"));
+			return;
+		}
 		setSubmitting(true);
 		const payload = {
 			username,
@@ -94,7 +98,7 @@ const LabDashboard = ({ navigation }) => {
 		if (mode === "queued") {
 			Alert.alert(
 				t("savedOffline"),
-				error ? `${t("savedOffline")} (${error})` : t("savedOffline")
+				error ? `${t("offlineQueue")}\n(${error})` : t("offlineQueue")
 			);
 		} else {
 			Alert.alert(t("recordQualityTest"), t("qualityRecorded"));

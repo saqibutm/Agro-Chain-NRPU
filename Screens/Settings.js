@@ -9,7 +9,7 @@ const { width, height } = Dimensions.get("window");
 
 const Settings = ({ navigation }) => {
     const { t, language, changeLanguage } = useI18n();
-    const { signOut } = useAuth();
+    const { signOut, user } = useAuth();
 
     return (
         <Container style={{ alignItems: "center", justifyContent: "flex-start", paddingHorizontal: width * 0.07, paddingVertical: 10, flex: 1 }}>

@@ -15,7 +15,7 @@ const ValidMill = ({ navigation }) => {
 			Alert.alert(t("missingFields"), `${t("millId")} is required.`);
 			return;
 		}
-		Alert.alert("Success", t("millBatchReceived"), [
+		Alert.alert("Success", t("millConfirmed"), [
 			{ text: "OK", onPress: () => navigation.navigate("Home") }
 		]);
 	};

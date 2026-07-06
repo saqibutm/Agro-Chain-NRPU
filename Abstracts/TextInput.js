@@ -32,6 +32,11 @@ const Input = ({
   leadingsize,
   tailingsize,
   keyboardType,
+  autoCapitalize,
+  autoCorrect,
+  secureTextEntry,
+  maxLength,
+  returnKeyType,
 }) => {
   const styles = StyleSheet.create({
     row: {
@@ -104,6 +109,11 @@ const Input = ({
         placeholderTextColor={placeholderTextColor ?? '#000000af'}
         onChangeText={setValue}
         keyboardType={keyboardType ?? 'default'}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
+        secureTextEntry={secureTextEntry}
+        maxLength={maxLength}
+        returnKeyType={returnKeyType}
       />
       {Tailing_icon !== undefined ? (
         TailingButton !== undefined ? (

@@ -78,8 +78,8 @@ const Home = ({ navigation }) => {
 		setLoading(true);
 		try {
 			const [batchRes, productRes, qualRes] = await Promise.all([
-				queryAllWheatBatches(username),
-				queryAllProducts(username),
+				queryAllWheatBatches(username).catch(() => ({ batches: [] })),
+				queryAllProducts(username).catch(() => ({ products: [] })),
 				queryAllQualityReports(username).catch(() => ({ reports: [] })),
 			]);
 			const fresh = computeKpis(batchRes.batches || [], productRes.products || [], qualRes.reports || []);

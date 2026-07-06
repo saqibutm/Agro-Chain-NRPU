@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { ScrollView, StyleSheet, Text, View, Dimensions, ActivityIndicator, RefreshControl } from 'react-native'
+import { ScrollView, StyleSheet, Text, View, Dimensions, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native'
 import Backward from "../Abstracts/Backward";
 import { queryAllWheatBatches } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
@@ -45,7 +45,7 @@ const TransactionHistory = ({ navigation }) => {
                 }));
             } else {
                 const raw = await queryAllWheatBatches(username);
-                data = Array.isArray(raw) ? raw : (raw?.result ?? []);
+                data = Array.isArray(raw) ? raw : (raw?.batches ?? raw?.result ?? []);
             }
             setBatches(data);
             setCachedAt(Date.now());
@@ -90,8 +90,10 @@ const TransactionHistory = ({ navigation }) => {
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="green" />}
                 >
                     {batches.map((item, index) => (
-                        <View
+                        <TouchableOpacity
                             key={item.batchID || index}
+                            activeOpacity={0.7}
+                            onPress={() => navigation.navigate("ProductDetail", { productID: item.batchID })}
                             style={[styles.item, index === batches.length - 1 && { borderBottomWidth: 0, paddingBottom: height * 0.03 }]}
                         >
                             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -105,7 +107,7 @@ const TransactionHistory = ({ navigation }) => {
                                 <Text style={styles.location}>{item.district}</Text>
                                 <Text style={[styles.status, item.status === "Delivered" && styles.statusDone]}>{item.status}</Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     ))}
                 </ScrollView>
             )}

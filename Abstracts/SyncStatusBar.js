@@ -4,10 +4,12 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useSync } from "../Services/SyncContext";
 import { discardAbandoned } from "../Services/SyncQueue";
+import { useI18n } from "../i18n/I18nContext";
 import { FontSize } from "./Theme";
 
 const SyncStatusBar = () => {
   const { isOnline, pending, syncing, abandoned, sync, refreshPending } = useSync();
+  const { t } = useI18n();
 
   const hasAbandoned = abandoned && abandoned.length > 0;
 
@@ -35,13 +37,13 @@ const SyncStatusBar = () => {
 
   if (!isOnline) {
     bg = "#c62828";
-    label = pending > 0 ? `Offline · ${pending} change(s) queued` : "Offline";
+    label = pending > 0 ? `${t("offline")} · ${pending} ${t("pendingChanges")}` : t("offline");
   } else if (syncing) {
     bg = "#ef6c00";
-    label = "Syncing…";
+    label = t("syncing");
   } else if (pending > 0) {
     bg = "#ef6c00";
-    label = `${pending} change(s) pending`;
+    label = `${pending} ${t("pendingChanges")}`;
   }
 
   return (
@@ -53,7 +55,7 @@ const SyncStatusBar = () => {
       {syncing && <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />}
       <Text style={styles.text}>
         {label}
-        {isOnline && pending > 0 && !syncing ? "  ·  Tap to sync" : ""}
+        {isOnline && pending > 0 && !syncing ? `  ·  ${t("tapToSync")}` : ""}
       </Text>
     </TouchableOpacity>
   );

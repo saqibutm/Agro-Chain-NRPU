@@ -252,7 +252,7 @@ const ProductJourney = ({ navigation, route }) => {
 
                 {/* Journey timeline */}
                 <Text style={styles.sectionTitle}>{t("productJourney")}</Text>
-                {product.journey.map((step, i) => {
+                {(product.journey || []).map((step, i) => {
                     const last = i === product.journey.length - 1;
                     return (
                         <View key={i} style={styles.timelineRow}>

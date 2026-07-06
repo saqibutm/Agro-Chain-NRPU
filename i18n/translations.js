@@ -141,6 +141,8 @@ export const translations = {
     missingFields: "Missing fields",
     farmerRegistered: "Farmer registered on the blockchain.",
     millBatchReceived: "Batch transferred to mill on the blockchain.",
+    millConfirmed: "Mill ID recorded. Processing complete.",
+    fillNumericFields: "At least one of Moisture, Protein, or Gluten is required.",
     offlineQueue: "No connection — your record was queued and will sync automatically.",
 
     // Product detail
@@ -287,6 +289,8 @@ export const translations = {
     missingFields: "لازمی خانے",
     farmerRegistered: "کسان بلاک چین پر ریکارڈ ہو گیا۔",
     millBatchReceived: "بیچ بلاک چین پر مل کو منتقل ہو گیا۔",
+    millConfirmed: "مل شناخت ریکارڈ ہو گئی۔ پروسیسنگ مکمل۔",
+    fillNumericFields: "نمی، پروٹین، یا گلوٹین میں سے کم از کم ایک ضروری ہے۔",
     offlineQueue: "کنیکشن نہیں — آپ کا ریکارڈ محفوظ ہو گیا اور خود بخود ہم آہنگ ہو جائے گا۔",
 
     // Product detail
