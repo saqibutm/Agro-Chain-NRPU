@@ -28,7 +28,6 @@ const AddMill = ({ navigation }) => {
 	};
 
 	const handleConfirm = (date, key) => {
-		console.info("A date has been picked: ", date, key);
 		if (date) {
 			setForm({
 				...form,
@@ -39,7 +38,6 @@ const AddMill = ({ navigation }) => {
 	};
 
 	const handleChange = (e, key) => {
-		console.log(e);
 		setForm({
 			...form,
 			[key]: e
@@ -48,12 +46,9 @@ const AddMill = ({ navigation }) => {
 
 	const handleSubmit = () => {
 		// On submit, send the form
-		console.log(form);
 	};
 
-	useEffect(() => {
-		console.log(form);
-	}, [form]);
+	useEffect(() => {}, [form]);
 
 	return (
 		<View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -107,7 +102,6 @@ const AddMill = ({ navigation }) => {
 					borderWidth={0}
 					keyboardType={"numeric"}
 				/>
-				{console.log(Platform.OS)}
 				{Platform.OS === "web" ? (
 					<input
 						style={{

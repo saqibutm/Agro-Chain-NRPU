@@ -37,7 +37,6 @@ const AddCrop = ({ navigation }) => {
 	};
 
 	const handleConfirm = (date) => {
-		console.warn("A date has been picked: ", date);
 		if (date) {
 			setForm({ ...form, date_harvested: date.toISOString().split("T")[0] });
 		}
@@ -45,7 +44,6 @@ const AddCrop = ({ navigation }) => {
 	};
 
 	const handleChange = (e, key) => {
-		console.log(e);
 		setForm({ ...form, [key]: e });
 	};
 

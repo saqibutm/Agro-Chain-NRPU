@@ -26,7 +26,6 @@ const AddFarmer = ({ navigation }) => {
 	};
 
 	const handleConfirm = (date) => {
-		console.warn("A date has been picked: ", date);
 		if (date) {
 			setForm({
 				...form,
@@ -37,7 +36,6 @@ const AddFarmer = ({ navigation }) => {
 	};
 
 	const handleChange = (e, key) => {
-		console.log(e);
 		setForm({
 			...form,
 			[key]: e
@@ -46,12 +44,9 @@ const AddFarmer = ({ navigation }) => {
 
 	const handleSubmit = () => {
 		// On submit, send the form
-		console.log(form);
 	};
 
-	useEffect(() => {
-		console.log(form);
-	}, [form]);
+	useEffect(() => {}, [form]);
 
 	return (
 		<View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
