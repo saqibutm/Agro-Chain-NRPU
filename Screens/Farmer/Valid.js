@@ -13,13 +13,11 @@ const ValidFarmer = ({ navigation }) => {
 	});
 
 	const handleChange = (e, key) => {
-		console.log(e);
 		setForm({ ...form, [key]: e });
 	};
 
 	const handleSubmit = () => {
 		// On submit, send the form
-		console.log(form);
 	};
 
 	return (

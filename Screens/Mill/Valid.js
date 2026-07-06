@@ -12,7 +12,6 @@ const ValidMill = () => {
 	});
 
 	const handleChange = (e, key) => {
-		console.log(e);
 		setForm({
 			...form,
 			[key]: e
@@ -21,7 +20,6 @@ const ValidMill = () => {
 
 	const handleSubmit = () => {
 		// On submit, send the form
-		console.log(form);
 	};
 
 	return (

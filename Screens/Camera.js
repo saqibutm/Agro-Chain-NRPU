@@ -11,7 +11,7 @@ const CameraScreen = ({ navigation }) => {
             let photo = await cameraRef.current.takePictureAsync();
             setImage(photo.uri);
             // navigation.navigate("ProductDetail")
-            console.log(photo);
+            if (__DEV__) console.log(photo);
         }
     };
 
