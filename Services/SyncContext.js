@@ -12,6 +12,7 @@ export const SyncProvider = ({ children }) => {
   const [syncing, setSyncing] = useState(false);
   const [abandoned, setAbandoned] = useState([]); // items that failed MAX_ATTEMPTS times
   const isOnlineRef = useRef(true);
+  const syncingRef = useRef(false);
 
   const refreshPending = useCallback(async () => {
     setPending(await pendingCount());
@@ -20,15 +21,17 @@ export const SyncProvider = ({ children }) => {
 
   // Flush the queue (no-op while offline or already syncing).
   const sync = useCallback(async () => {
-    if (!isOnlineRef.current || syncing) return;
+    if (!isOnlineRef.current || syncingRef.current) return;
+    syncingRef.current = true;
     setSyncing(true);
     try {
       await processQueue();
     } finally {
+      syncingRef.current = false;
       setSyncing(false);
       await refreshPending();
     }
-  }, [syncing, refreshPending]);
+  }, [refreshPending]);
 
   // Submit a write: go straight to the network when online, otherwise queue it.
   const submit = useCallback(

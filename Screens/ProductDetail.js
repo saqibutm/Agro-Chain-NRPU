@@ -39,7 +39,8 @@ const ProductDetail = ({ route, navigation }) => {
                 if (DEMO_MODE) {
                     data = getProductById(productID) || ALL_PRODUCTS[0];
                 } else {
-                    data = await queryProduct(username, productID);
+                    const res = await queryProduct(username, productID);
+                    data = res?.product ?? res;
                 }
                 setProduct(data);
             } catch (e) {

@@ -22,8 +22,8 @@ const DEV_URL = `http://${DEV_HOST}:8081`;
 // In production use the configured URL; in dev default to the local gateway.
 // `extra.apiBaseUrl` can also override the dev default if you set it.
 export const API_BASE_URL = __DEV__
-  ? extra.apiBaseUrl || DEV_URL
-  : extra.apiBaseUrl || DEV_URL;
+  ? (extra.apiBaseUrl || DEV_URL)
+  : (extra.apiBaseUrl || "");
 
 // True when a real production URL has been configured (not localhost).
 export const IS_BACKEND_CONFIGURED =

@@ -49,7 +49,7 @@ const AddCrop = ({ navigation }) => {
 
 	const handleSubmit = async () => {
 		if (!form.farmer_id || !form.batch_number) {
-			Alert.alert("Missing fields", "Crop ID and Batch Number are required.");
+			Alert.alert(t("missingFields"), `${t("cropId")} and ${t("batchNumber")} are required.`);
 			return;
 		}
 

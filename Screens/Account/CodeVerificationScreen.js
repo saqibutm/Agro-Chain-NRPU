@@ -12,7 +12,7 @@ const DEMO_CODE = "1234"
 
 const CodeVerificationScreen = ({ route, navigation }) => {
     const [code, setCode] = useState("")
-    const { email } = route.params
+    const { email } = route?.params ?? {}
 
     const handleVerify = () => {
         if (code.length < 4) {
@@ -34,9 +34,6 @@ const CodeVerificationScreen = ({ route, navigation }) => {
                 <Text style={{ color: "black", marginTop: height * 0.02, width: width * 0.74, fontSize: FontSize.F17, textAlign: "center" }}>
                     Enter the security code sent to
                     <Text style={{ fontWeight: "600" }}>{` `}{email}</Text>
-                </Text>
-                <Text style={{ color: "gray", marginTop: height * 0.01, fontSize: FontSize.F14, textAlign: "center" }}>
-                    (Demo code: 1234)
                 </Text>
                 <Input
                     style={{ marginTop: height * 0.03 }}
