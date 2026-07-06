@@ -1,0 +1,151 @@
+# AgroChain — Apple App Store Listing Checklist
+
+Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Apple App Store.
+
+---
+
+## 1. Pre-requisites
+
+- [ ] Apple Developer Program ($99/year) — https://developer.apple.com/programs
+- [ ] App Store Connect app entry created with Bundle ID `com.agrochain.app`
+- [ ] App Store Connect API key (for `eas submit`)
+- [ ] iOS archive built: `eas build --platform ios --profile production`
+- [ ] Tested on a real device via TestFlight before submitting
+
+---
+
+## 2. App identity
+
+| Field | Value |
+|-------|-------|
+| App name | **AgroChain** |
+| Bundle ID | `com.agrochain.app` (permanent) |
+| Primary language | English (US) — add Urdu (Pakistan) as secondary |
+| Category | Business (primary) / Food & Drink (secondary) |
+| Price | Free |
+| Content rights | Confirm you own all content |
+
+---
+
+## 3. Short description (30 chars max — shown in search)
+
+> Farm-to-consumer blockchain
+
+---
+
+## 4. Full description (4000 chars max — same as Play Store)
+
+> **AgroChain** brings complete farm-to-consumer traceability to Pakistan's wheat and
+> sugarcane supply chains, powered by Hyperledger Fabric blockchain.
+>
+> [paste full description from STORE.md §4]
+
+---
+
+## 5. Keywords (100 chars, comma-separated)
+
+> blockchain,agriculture,supply chain,wheat,sugar,Pakistan,traceability,food safety,QR
+
+---
+
+## 6. Screenshots required
+
+### iPhone 6.9" — `store/screenshots/ios-6.9/` (1320×2868)
+All 8 English screenshots generated. Upload in order 01–08.
+
+### iPad 12.9" — `store/screenshots/ios-ipad/` (2048×2732)
+All 8 English screenshots generated. **Required** because `supportsTablet: true`.
+
+### Urdu (Pakistan) localization
+- iPhone 6.9": `store/screenshots/ios-6.9-ur/` — 5 screenshots available
+- iPad 12.9": `store/screenshots/ios-ipad-ur/` — 5 screenshots available
+
+---
+
+## 7. App icon
+
+`store/ios-icon-1024.png` — 1024×1024 PNG, no alpha ✓
+
+---
+
+## 8. App Review information (critical — Apple rejects without this)
+
+In App Store Connect → App Review Information:
+
+| Field | Value |
+|-------|-------|
+| Demo username | `demo` (or any valid test account) |
+| Demo password | your test password |
+| Notes | "This app includes a full offline demo mode. All screens work without a backend. After logging in with the demo credentials, all supply-chain screens display realistic Pakistan wheat/sugar data. Camera (QR scan) and GPS features require device permissions." |
+
+---
+
+## 9. App content declarations (App Store Connect → App Information)
+
+| Field | Answer |
+|-------|--------|
+| Contains ads | No |
+| Made for kids | No |
+| Age rating | 4+ (complete IARC questionnaire) |
+| Privacy policy URL | Your hosted `privacy.html` URL |
+
+---
+
+## 10. Privacy — App Privacy (App Store Connect → App Privacy)
+
+| Data type | Collected | Linked to user | Used for tracking |
+|-----------|-----------|----------------|-------------------|
+| Precise location | Yes | Yes | No |
+| Coarse location | Yes | Yes | No |
+| Name / User ID | Yes | Yes | No |
+| Product interaction | Yes | Yes | No |
+| Camera | No (live scan only, not stored) | — | — |
+| Crash data | No | — | — |
+| Third-party advertising | No | — | — |
+
+Select "No" for "Does your app use data for tracking?".
+
+---
+
+## 11. Release notes (v1.0.0)
+
+> First release of AgroChain.
+> • Blockchain farm-to-consumer traceability for wheat & sugar
+> • QR scanning with full product journey and GPS route map
+> • Quality reports, fraud alerts, and live KPI dashboard
+> • Offline-first capture with automatic sync
+> • English and Urdu support
+
+---
+
+## 12. Release flow
+
+1. `eas build --platform ios --profile production` — builds the signed `.ipa`
+2. `eas submit --platform ios --profile production` — uploads to App Store Connect
+3. Open App Store Connect → TestFlight → add internal testers → test
+4. App Store Connect → Prepare for Submission → fill all sections above
+5. Submit for Review (first review: 1–3 business days)
+
+For subsequent releases:
+```bash
+# Bump version in app.json, then:
+eas build --platform ios --profile production
+eas submit --platform ios --profile production
+```
+EAS auto-increments `buildNumber` via `autoIncrement: true`.
+
+---
+
+## 13. Quick reference — config already set
+
+| Setting | Where | Value |
+|---------|-------|-------|
+| Bundle ID | `app.json` → `ios.bundleIdentifier` | com.agrochain.app |
+| Version | `app.json` → `expo.version` | 1.0.0 |
+| Build number | managed remotely by EAS (`autoIncrement`) | auto |
+| Camera permission | `app.json` → `ios.infoPlist` | ✓ |
+| Location permission | `app.json` → `ios.infoPlist` | ✓ |
+| Always-location blocked | `app.json` → `ios.infoPlist` | ✓ (false) |
+| Tablet support | `app.json` → `ios.supportsTablet` | true |
+| iOS archive profile | `eas.json` → `build.production.ios` | ✓ |
+| iOS submit profile | `eas.json` → `submit.production.ios` | needs IDs filled |
