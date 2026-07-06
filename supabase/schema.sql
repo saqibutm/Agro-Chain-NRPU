@@ -68,7 +68,9 @@ create table if not exists public.batch_transfers (
 create table if not exists public.quality_reports (
   id          uuid primary key default gen_random_uuid(),
   report_id   text unique not null,
-  subject_id  text not null,   -- wheat_batch_id of the tested batch
+  subject_id  text not null,   -- batch/product ID under test; intentionally no FK
+                               -- so labs can record tests for IDs outside wheat_batches
+                               -- (e.g. consumer-reported products, sugar batches)
   lab_id      text,
   tested_by   text,
   test_date   date,

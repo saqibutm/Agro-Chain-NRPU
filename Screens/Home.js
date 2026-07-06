@@ -6,7 +6,7 @@ import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
 import { useAuth } from "../Services/AuthContext";
-import { queryAllWheatBatches, queryAllProducts, queryAllQualityReports } from "../Services/api";
+import { queryAllWheatBatches, queryAllProducts, queryAllQualityReports, queryRecentActivity } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getKpis as getDemoKpis, getRecentActivity } from "../Services/demoData";
 import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
@@ -113,12 +113,13 @@ const Home = ({ navigation }) => {
 	const role = user?.role || "farmer";
 
 	const [stats, setStats] = useState(DEMO_MODE ? getDemoKpis() : { created: 0, inTransit: 0, delivered: 0, products: 0, passRate: null, qualityFlags: 0 });
+	const [activity, setActivity] = useState(DEMO_MODE ? getRecentActivity() : []);
 	const [loading, setLoading] = useState(false);
 	const [live, setLive] = useState(DEMO_MODE);
-	const [cachedAt, setCachedAt] = useState(null); // Date when cached data was saved
+	const [cachedAt, setCachedAt] = useState(null);
 
 	const loadData = useCallback(async () => {
-		if (DEMO_MODE) { setStats(getDemoKpis()); setLive(true); return; }
+		if (DEMO_MODE) { setStats(getDemoKpis()); setActivity(getRecentActivity()); setLive(true); return; }
 
 		// Show cached data immediately so the screen is never blank offline.
 		const cached = await cacheGet(CacheKeys.KPIS);
@@ -131,13 +132,15 @@ const Home = ({ navigation }) => {
 		if (!isOnline) return;
 		setLoading(true);
 		try {
-			const [batchRes, productRes, qualRes] = await Promise.all([
+			const [batchRes, productRes, qualRes, activityItems] = await Promise.all([
 				queryAllWheatBatches(username).catch(() => ({ batches: [] })),
 				queryAllProducts(username).catch(() => ({ products: [] })),
 				queryAllQualityReports(username).catch(() => ({ reports: [] })),
+				queryRecentActivity().catch(() => []),
 			]);
 			const fresh = computeKpis(batchRes.batches || [], productRes.products || [], qualRes.reports || []);
 			setStats(fresh);
+			setActivity(activityItems);
 			setLive(true);
 			setCachedAt(null);
 			await cacheSet(CacheKeys.KPIS, fresh);
@@ -178,14 +181,6 @@ const Home = ({ navigation }) => {
 		.map((a) => ({ label: t(a.labelKey), screen: a.screen }));
 
 	const roleKpiIndices = ROLE_KPIS[role] || ROLE_KPIS.farmer;
-
-	const activity = DEMO_MODE
-		? getRecentActivity()
-		: [
-			{ text: "WB-2024-001 → Collection Center", status: "#2e7d32" },
-			{ text: "WB-2024-002 quality: Grade A", status: "#1565c0" },
-			{ text: "WB-2024-007 weight variance flagged", status: "#c62828" },
-		];
 
 	return (
 		<Container style={{ paddingHorizontal: 0, paddingVertical: 0, flex: 1 }}>

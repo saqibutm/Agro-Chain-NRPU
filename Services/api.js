@@ -86,23 +86,6 @@ export async function dispatch(action, payload) {
   }
 }
 
-// ── Auth (sign-in delegated to AuthContext/Supabase Auth) ────────────────────
-export async function login(username, password) {
-  const email = `${username.toLowerCase().trim()}@agrochain.local`;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message);
-  // Fetch role from profiles table
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username, role")
-    .eq("id", data.user.id)
-    .single();
-  return {
-    username: profile?.username || username.trim(),
-    role:     profile?.role     || "farmer",
-  };
-}
-
 // ── Read helpers ─────────────────────────────────────────────────────────────
 
 export async function queryWheatBatch(username, wheatBatchID) {
@@ -177,6 +160,26 @@ export async function queryAllQualityReports(username) {
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return { reports: data.map(_mapReport) };
+}
+
+export async function queryRecentActivity() {
+  const [transferRes, qualRes] = await Promise.all([
+    supabase.from("batch_transfers").select("wheat_batch_id, to_entity_id, created_at").order("created_at", { ascending: false }).limit(4),
+    supabase.from("quality_reports").select("subject_id, result, grade, created_at").order("created_at", { ascending: false }).limit(3),
+  ]);
+  const events = [
+    ...(transferRes.data || []).map((t) => ({
+      date:   t.created_at,
+      text:   `${t.wheat_batch_id} → ${t.to_entity_id}`,
+      status: "#2e7d32",
+    })),
+    ...(qualRes.data || []).map((r) => ({
+      date:   r.created_at,
+      text:   `${r.subject_id} quality: Grade ${r.grade}`,
+      status: r.result === "Fail" ? "#c62828" : "#1565c0",
+    })),
+  ];
+  return events.sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
 }
 
 export async function queryProductMovements(username, productID) {
