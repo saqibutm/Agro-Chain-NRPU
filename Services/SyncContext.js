@@ -1,7 +1,7 @@
 // App-wide sync state: online status, pending count, and auto-flush on reconnect.
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import NetInfo from "@react-native-community/netinfo";
-import { enqueue, pendingCount, processQueue } from "./SyncQueue";
+import { enqueue, pendingCount, processQueue, abandonedItems } from "./SyncQueue";
 import { dispatch } from "./api";
 
 const SyncContext = createContext(null);
@@ -10,10 +10,12 @@ export const SyncProvider = ({ children }) => {
   const [isOnline, setIsOnline] = useState(true);
   const [pending, setPending] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [abandoned, setAbandoned] = useState([]); // items that failed MAX_ATTEMPTS times
   const isOnlineRef = useRef(true);
 
   const refreshPending = useCallback(async () => {
     setPending(await pendingCount());
+    setAbandoned(await abandonedItems());
   }, []);
 
   // Flush the queue (no-op while offline or already syncing).
@@ -61,7 +63,7 @@ export const SyncProvider = ({ children }) => {
   }, [refreshPending, sync]);
 
   return (
-    <SyncContext.Provider value={{ isOnline, pending, syncing, submit, sync, refreshPending }}>
+    <SyncContext.Provider value={{ isOnline, pending, syncing, abandoned, submit, sync, refreshPending }}>
       {children}
     </SyncContext.Provider>
   );

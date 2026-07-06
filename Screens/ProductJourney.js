@@ -9,6 +9,8 @@ import { useAuth } from "../Services/AuthContext";
 import { Actions, queryProduct, queryProductMovements, queryQualityReports, queryWheatBatch } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getProductById, WHEAT_PRODUCTS } from "../Services/demoData";
+import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
+import SyncStatusBar from "../Abstracts/SyncStatusBar";
 import { hasCoords } from "../Services/location";
 const { width, height } = Dimensions.get("window");
 
@@ -105,6 +107,7 @@ const ProductJourney = ({ navigation, route }) => {
     const [geoPoints, setGeoPoints] = useState(initial.geoPoints || []);
     const [loading, setLoading] = useState(false);
     const [reported, setReported] = useState(false);
+    const [cachedAt, setCachedAt] = useState(null);
 
     // Fetch real traceability when a productID was passed (e.g. from a QR scan).
     const loadProduct = useCallback(async () => {
@@ -114,6 +117,16 @@ const ProductJourney = ({ navigation, route }) => {
             setGeoPoints(p.geoPoints || []);
             return;
         }
+
+        if (productID) {
+            const cached = await cacheGet(CacheKeys.product(productID));
+            if (cached) {
+                setProduct(cached.data.product);
+                setGeoPoints(cached.data.geoPoints || []);
+                setCachedAt(cached.savedAt);
+            }
+        }
+
         if (!productID || !isOnline) return;
         setLoading(true);
         try {
@@ -123,15 +136,19 @@ const ProductJourney = ({ navigation, route }) => {
                 queryQualityReports(username, productID).catch(() => ({ reports: [] })),
             ]);
             if (prodRes.product) {
-                setProduct(buildProduct(prodRes.product, movRes.movements, qualRes.reports));
-                // The geo-trail lives on the source wheat batch's custodyHistory.
+                const built = buildProduct(prodRes.product, movRes.movements, qualRes.reports);
+                let geo = [];
                 if (prodRes.product.wheatBatchID) {
                     const batchRes = await queryWheatBatch(username, prodRes.product.wheatBatchID).catch(() => null);
-                    setGeoPoints(geoPointsFromBatch(batchRes?.wheatBatch));
+                    geo = geoPointsFromBatch(batchRes?.wheatBatch);
                 }
+                setProduct(built);
+                setGeoPoints(geo);
+                setCachedAt(null);
+                await cacheSet(CacheKeys.product(productID), { product: built, geoPoints: geo });
             }
         } catch (e) {
-            // Unknown/unreachable product — keep showing sample so the UI is never blank.
+            // Unreachable — cached or sample data already shown.
         } finally {
             setLoading(false);
         }
@@ -159,6 +176,12 @@ const ProductJourney = ({ navigation, route }) => {
                 <Backward color="white" onPress={() => navigation.goBack()} />
                 <Text style={styles.headText}>{t("productJourney")}</Text>
             </View>
+            <SyncStatusBar />
+            {cachedAt && (
+                <Text style={{ fontSize: 11, color: "#888", textAlign: "center", paddingVertical: 4 }}>
+                    Last synced {Math.round((Date.now() - cachedAt) / 60000)}m ago
+                </Text>
+            )}
 
             <ScrollView contentContainerStyle={{ padding: width * 0.05, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
                 {loading && (

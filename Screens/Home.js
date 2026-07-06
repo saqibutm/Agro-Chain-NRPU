@@ -9,6 +9,7 @@ import { useAuth } from "../Services/AuthContext";
 import { queryAllWheatBatches, queryAllProducts, queryAllQualityReports } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getKpis as getDemoKpis, getRecentActivity } from "../Services/demoData";
+import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 const { width, height } = Dimensions.get("window");
 
 // Derive dashboard KPIs from on-chain batches/products/quality reports.
@@ -59,10 +60,20 @@ const Home = ({ navigation }) => {
 
 	const [stats, setStats] = useState(DEMO_MODE ? getDemoKpis() : { created: 0, inTransit: 0, delivered: 0, products: 0, passRate: null, qualityFlags: 0 });
 	const [loading, setLoading] = useState(false);
-	const [live, setLive] = useState(DEMO_MODE); // demo data counts as "loaded"
+	const [live, setLive] = useState(DEMO_MODE);
+	const [cachedAt, setCachedAt] = useState(null); // Date when cached data was saved
 
 	const loadData = useCallback(async () => {
 		if (DEMO_MODE) { setStats(getDemoKpis()); setLive(true); return; }
+
+		// Show cached data immediately so the screen is never blank offline.
+		const cached = await cacheGet(CacheKeys.KPIS);
+		if (cached) {
+			setStats(cached.data);
+			setCachedAt(cached.savedAt);
+			setLive(false);
+		}
+
 		if (!isOnline) return;
 		setLoading(true);
 		try {
@@ -71,11 +82,13 @@ const Home = ({ navigation }) => {
 				queryAllProducts(username),
 				queryAllQualityReports(username).catch(() => ({ reports: [] })),
 			]);
-			setStats(computeKpis(batchRes.batches || [], productRes.products || [], qualRes.reports || []));
+			const fresh = computeKpis(batchRes.batches || [], productRes.products || [], qualRes.reports || []);
+			setStats(fresh);
 			setLive(true);
+			setCachedAt(null);
+			await cacheSet(CacheKeys.KPIS, fresh);
 		} catch (e) {
-			// Backend unreachable — keep placeholders, dashboard stays usable offline.
-			setLive(false);
+			if (!cached) setLive(false);
 		} finally {
 			setLoading(false);
 		}
@@ -129,6 +142,11 @@ const Home = ({ navigation }) => {
 			>
 				<Text style={styles.greeting}>{t("farmer")}</Text>
 				<Text style={styles.subtitle}>{t("dashboard")}</Text>
+				{cachedAt && (
+					<Text style={styles.staleNote}>
+						Last synced {Math.round((Date.now() - cachedAt) / 60000)}m ago
+					</Text>
+				)}
 
 				{/* KPI grid */}
 				<View style={styles.kpiGrid}>
@@ -198,6 +216,7 @@ const styles = StyleSheet.create({
 	activityRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: "#eee" },
 	activityDot: { width: 10, height: 10, borderRadius: 5, marginRight: 10 },
 	activityText: { fontSize: FontSize.F14, color: "#444", flex: 1 },
+	staleNote: { fontSize: FontSize.F12, color: "#888", marginBottom: height * 0.01 },
 });
 
 export default Home;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { ScrollView, StyleSheet, Text, View, Dimensions, RefreshControl, TouchableOpacity } from 'react-native'
 import Backward from "../Abstracts/Backward";
+import SyncStatusBar from "../Abstracts/SyncStatusBar";
 import { FontSize } from '../Abstracts/Theme';
 import { useI18n } from '../i18n/I18nContext';
 import { useSync } from '../Services/SyncContext';
@@ -8,6 +9,7 @@ import { useAuth } from '../Services/AuthContext';
 import { queryAllProducts } from '../Services/api';
 import { DEFAULT_USERNAME, DEMO_MODE } from '../Services/config';
 import { getTrackingItems } from '../Services/demoData';
+import { cacheGet, cacheSet, CacheKeys } from '../Services/cache';
 const { width, height } = Dimensions.get("window");
 
 // Fallback sample shown when the backend is unreachable.
@@ -25,9 +27,18 @@ const SupplyChainTracking = ({ navigation }) => {
     const [items, setItems] = useState(DEMO_MODE ? getTrackingItems() : sampleData);
     const [loading, setLoading] = useState(false);
     const [live, setLive] = useState(DEMO_MODE);
+    const [cachedAt, setCachedAt] = useState(null);
 
     const loadData = useCallback(async () => {
         if (DEMO_MODE) { setItems(getTrackingItems()); setLive(true); return; }
+
+        const cached = await cacheGet(CacheKeys.PRODUCTS);
+        if (cached) {
+            setItems(cached.data);
+            setCachedAt(cached.savedAt);
+            setLive(false);
+        }
+
         if (!isOnline) return;
         setLoading(true);
         try {
@@ -42,9 +53,11 @@ const SupplyChainTracking = ({ navigation }) => {
             if (mapped.length) {
                 setItems(mapped);
                 setLive(true);
+                setCachedAt(null);
+                await cacheSet(CacheKeys.PRODUCTS, mapped);
             }
         } catch (e) {
-            setLive(false); // keep sample data
+            if (!cached) setLive(false);
         } finally {
             setLoading(false);
         }
@@ -54,10 +67,16 @@ const SupplyChainTracking = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, paddingHorizontal: width * 0.05, paddingTop: height * 0.06, backgroundColor: "white" }}>
+            <SyncStatusBar />
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                 <Backward onPress={() => navigation.goBack()} />
                 <Text style={styles.headText}>{t("supplyChainTracking")}</Text>
             </View>
+            {cachedAt && (
+                <Text style={{ fontSize: 11, color: "#888", textAlign: "center", marginBottom: 4 }}>
+                    Last synced {Math.round((Date.now() - cachedAt) / 60000)}m ago
+                </Text>
+            )}
             <ScrollView
                 style={{ marginTop: height * 0.02 }}
                 showsVerticalScrollIndicator={false}

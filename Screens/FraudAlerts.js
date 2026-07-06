@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, StyleSheet, Dimensions, RefreshControl } from "react-native";
 import Backward from "../Abstracts/Backward";
+import SyncStatusBar from "../Abstracts/SyncStatusBar";
 import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
@@ -8,6 +9,7 @@ import { useAuth } from "../Services/AuthContext";
 import { queryAllQualityReports } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getQualityReports } from "../Services/demoData";
+import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 import { evaluate, checkDuplicateQR, evaluateQualityReports, Severity } from "../Services/fraudDetection";
 const { width, height } = Dimensions.get("window");
 
@@ -37,6 +39,7 @@ const FraudAlerts = ({ navigation }) => {
     const username = user?.username || DEFAULT_USERNAME;
     const [qualityAlerts, setQualityAlerts] = useState(DEMO_MODE ? evaluateQualityReports(getQualityReports()) : []);
     const [loading, setLoading] = useState(false);
+    const [cachedAt, setCachedAt] = useState(null);
 
     // Rule-based alerts from local records (always available, even offline).
     const baseAlerts = [
@@ -47,13 +50,23 @@ const FraudAlerts = ({ navigation }) => {
     // Live alerts derived from on-chain quality reports.
     const loadQualityAlerts = useCallback(async () => {
         if (DEMO_MODE) { setQualityAlerts(evaluateQualityReports(getQualityReports())); return; }
+
+        const cached = await cacheGet(CacheKeys.QUALITY_REPORTS);
+        if (cached) {
+            setQualityAlerts(evaluateQualityReports(cached.data));
+            setCachedAt(cached.savedAt);
+        }
+
         if (!isOnline) return;
         setLoading(true);
         try {
             const res = await queryAllQualityReports(username);
-            setQualityAlerts(evaluateQualityReports(res.reports || []));
+            const reports = res.reports || [];
+            setQualityAlerts(evaluateQualityReports(reports));
+            setCachedAt(null);
+            await cacheSet(CacheKeys.QUALITY_REPORTS, reports);
         } catch (e) {
-            // Backend unreachable — keep rule-based alerts only.
+            // Backend unreachable — cached or rule-based alerts remain.
         } finally {
             setLoading(false);
         }
@@ -69,10 +82,16 @@ const FraudAlerts = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1, paddingHorizontal: width * 0.05, paddingTop: height * 0.06, backgroundColor: "white" }}>
+            <SyncStatusBar />
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                 <Backward onPress={() => navigation.goBack()} />
                 <Text style={styles.headText}>{t("fraudAlerts")}</Text>
             </View>
+            {cachedAt && (
+                <Text style={{ fontSize: 11, color: "#888", textAlign: "center", marginBottom: 4 }}>
+                    Last synced {Math.round((Date.now() - cachedAt) / 60000)}m ago
+                </Text>
+            )}
 
             <ScrollView
                 style={{ marginTop: height * 0.02 }}
