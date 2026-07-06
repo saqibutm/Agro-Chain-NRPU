@@ -25,6 +25,22 @@ export const AuthProvider = ({ children }) => {
     })();
   }, []);
 
+  // Keep app session in sync with Supabase auth state.
+  // If the Supabase JWT expires and refresh fails, clear the local session so
+  // the user is redirected to sign-in rather than hitting silent 401 errors.
+  useEffect(() => {
+    if (DEMO_MODE) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
+          await AsyncStorage.removeItem(SESSION_KEY);
+          setUser(null);
+        }
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, []);
+
   const signIn = useCallback(async (username, password, role = "farmer") => {
     let sessionUsername = username.trim();
     let sessionRole = role;

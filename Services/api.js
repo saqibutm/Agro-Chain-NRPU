@@ -42,11 +42,12 @@ export async function dispatch(action, payload) {
         location:       payload.location || null,
       });
       if (tErr) throw new Error(tErr.message);
-      // Update batch status
-      await supabase
+      // Update batch status — error is non-fatal; transfer is already recorded.
+      const { error: uErr } = await supabase
         .from("wheat_batches")
         .update({ status: "In Transit" })
         .eq("wheat_batch_id", payload.wheatBatchID);
+      if (uErr) console.warn("batch status update failed:", uErr.message);
       return { success: true };
     }
 

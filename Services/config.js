@@ -10,8 +10,8 @@ const extra =
   {};
 
 export const IS_BACKEND_CONFIGURED =
-  !!extra.supabaseUrl &&
-  !/REPLACE_WITH/i.test(extra.supabaseUrl);
+  !!extra.supabaseUrl  && !/REPLACE_WITH/i.test(extra.supabaseUrl) &&
+  !!extra.supabaseAnonKey && !/REPLACE_WITH/i.test(extra.supabaseAnonKey);
 
 export const DEMO_MODE =
   extra.demoMode === true  ? true  :
