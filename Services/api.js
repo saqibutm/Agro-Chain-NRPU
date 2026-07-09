@@ -12,8 +12,18 @@ export const Actions = {
   RECORD_QUALITY_TEST:  "RECORD_QUALITY_TEST",
 };
 
+// Current authenticated user's ID, read from the local session (no network
+// round trip) — used to stamp created_by/reported_by on every write so
+// records keep an audit trail of who created them.
+async function _currentUserId() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
+}
+
 // ── Write dispatcher (used by SyncQueue for offline replay) ──────────────────
 export async function dispatch(action, payload) {
+  const createdBy = await _currentUserId();
+
   switch (action) {
 
     case Actions.CREATE_WHEAT_BATCH: {
@@ -27,6 +37,7 @@ export async function dispatch(action, payload) {
         latitude:       payload.latitude || null,
         longitude:      payload.longitude|| null,
         status:         "Created",
+        created_by:     createdBy,
       });
       if (error) throw new Error(error.message);
       return { success: true };
@@ -40,6 +51,7 @@ export async function dispatch(action, payload) {
         quantity:       payload.quantity || 0,
         transfer_date:  payload.transferDate || null,
         location:       payload.location || null,
+        created_by:     createdBy,
       });
       if (tErr) throw new Error(tErr.message);
       // Update batch status — error is non-fatal; transfer is already recorded.
@@ -66,6 +78,7 @@ export async function dispatch(action, payload) {
         result:     payload.result || "Pass",
         grade:      payload.grade  || "A",
         cert_hash:  payload.certHash || null,
+        created_by: createdBy,
       });
       if (error) throw new Error(error.message);
       return { success: true };
@@ -76,6 +89,7 @@ export async function dispatch(action, payload) {
         product_id:  payload.productID,
         district:    payload.district    || null,
         description: payload.description || null,
+        reported_by: createdBy,
       });
       if (error) throw new Error(error.message);
       return { success: true };
