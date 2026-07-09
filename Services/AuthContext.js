@@ -1,6 +1,6 @@
 // App-wide authentication state with a persisted session.
-// Uses Supabase Auth. Credentials use the pattern username@agrochain.local
-// so users only ever type a short username, not an email address.
+// Uses Supabase Auth. Credentials use the pattern phone@agrochain.local so
+// users only ever type their mobile number — no email address is required.
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
@@ -41,15 +41,15 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = useCallback(async (username, password, role = "farmer") => {
-    let sessionUsername = username.trim();
+  const signIn = useCallback(async (phone, password, role = "farmer") => {
+    let sessionPhone = phone.trim();
     let sessionRole = role;
 
     if (DEMO_MODE) {
       // No Supabase project configured — accept any credentials for demo.
-      sessionUsername = sessionUsername || "demo";
+      sessionPhone = sessionPhone || "demo";
     } else {
-      const email = `${sessionUsername.toLowerCase()}@agrochain.local`;
+      const email = `${sessionPhone}@agrochain.local`;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw new Error(error.message);
       // Prefer role from profiles table over what was selected on sign-in.
@@ -58,11 +58,30 @@ export const AuthProvider = ({ children }) => {
         .select("username, role")
         .eq("id", data.user.id)
         .single();
-      sessionUsername = profile?.username || sessionUsername;
-      sessionRole     = profile?.role     || role;
+      sessionPhone = profile?.username || sessionPhone;
+      sessionRole  = profile?.role     || role;
     }
 
-    const session = { username: sessionUsername, role: sessionRole };
+    const session = { username: sessionPhone, role: sessionRole };
+    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    setUser(session);
+    return session;
+  }, []);
+
+  // Adopt an already-authenticated Supabase session, e.g. right after
+  // supabase.auth.signUp() when email confirmation is disabled. Skips the
+  // signInWithPassword round trip that signIn() would otherwise pay for.
+  const adoptSession = useCallback(async (userId, fallbackPhone, fallbackRole = "farmer") => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, role")
+      .eq("id", userId)
+      .single();
+
+    const session = {
+      username: profile?.username || fallbackPhone,
+      role:     profile?.role     || fallbackRole,
+    };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return session;
@@ -75,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, adoptSession }}>
       {children}
     </AuthContext.Provider>
   );

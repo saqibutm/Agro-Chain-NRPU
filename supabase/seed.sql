@@ -6,20 +6,23 @@
 -- Run in Supabase SQL editor:
 select auth.uid(); -- confirm you are logged in as service role
 
--- Create users via Supabase Auth API (use Dashboard → Authentication → Users → Invite,
--- or run this in a Node script with the service-role key):
+-- There is no email sign-up in the app — users type an 11-digit mobile number
+-- (starting with 0) and the app builds <number>@agrochain.local under the
+-- hood for Supabase Auth. Create users via Supabase Auth API (use Dashboard →
+-- Authentication → Users → Invite, or run this in a Node script with the
+-- service-role key):
 --
---  Role     | Email                          | Username    | Password
--- ----------|-------------------------------|-------------|------------------
---  farmer   | farmer@agrochain.local        | farmer      | AgroChain2024!
---  mill     | mill@agrochain.local          | mill        | AgroChain2024!
---  lab      | lab@agrochain.local           | lab         | AgroChain2024!
---  regulator| regulator@agrochain.local     | regulator   | AgroChain2024!
---  consumer | consumer@agrochain.local      | consumer    | AgroChain2024!
- --  admin    | admin@agrochain.local         | admin       | AgroChain2024!
+--  Role     | Mobile Number | Email                          | Password
+-- ----------|----------------|-------------------------------|------------------
+--  farmer   | 03000000001    | 03000000001@agrochain.local    | AgroChain2024!
+--  mill     | 03000000002    | 03000000002@agrochain.local    | AgroChain2024!
+--  lab      | 03000000003    | 03000000003@agrochain.local    | AgroChain2024!
+--  regulator| 03000000004    | 03000000004@agrochain.local    | AgroChain2024!
+--  consumer | 03000000005    | 03000000005@agrochain.local    | AgroChain2024!
 --
 -- After creating each user in the Auth UI, the trigger handle_new_user()
--- auto-populates the profiles table with the correct username and role.
+-- auto-populates the profiles table with the correct username (mobile
+-- number) and role.
 --
 -- To set the role metadata when creating a user via the API:
---   { "data": { "username": "farmer", "role": "farmer" } }
+--   { "data": { "username": "03000000001", "role": "farmer" } }

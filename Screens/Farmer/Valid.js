@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, Dimensions, Alert } from "react-native";
+import { StyleSheet, Text, Dimensions } from "react-native";
+import Alert from "../../Abstracts/Alert";
 import Container from "../../Abstracts/Container";
 import Input from "../../Abstracts/TextInput";
 import Button from "../../Abstracts/Button";

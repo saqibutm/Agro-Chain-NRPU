@@ -15,6 +15,7 @@ import MapScreen from '../Screens/MapScreen';
 import ProductDetail from '../Screens/ProductDetail';
 import BottomTab from "./BottomTab";
 import CodeVerificationScreen from "../Screens/Account/CodeVerificationScreen";
+import SignUp from "../Screens/Account/SignUp";
 import QRScanner from "../Screens/QRScanner";
 import FAQs from "../Screens/FAQs";
 import ProductJourney from "../Screens/ProductJourney";
@@ -47,6 +48,7 @@ export function MainStack() {
                     <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
                     <Stack.Screen name="CreateNewPassword" component={CreateNewPassword} />
                     <Stack.Screen name="CodeVerificationScreen" component={CodeVerificationScreen} />
+                    <Stack.Screen name="SignUp" component={SignUp} />
                 </Stack.Group>
             ) : (
                 // ── Authenticated: full app ──

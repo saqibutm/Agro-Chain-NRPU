@@ -1,40 +1,37 @@
 import React, { useState } from "react";
-import { View, Text, Dimensions, StyleSheet, Alert, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import Alert from "../../Abstracts/Alert";
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
 import Input from "../../Abstracts/TextInput";
 import { Colors, FontSize } from '../../Abstracts/Theme'
 import { useI18n } from '../../i18n/I18nContext'
 import { useAuth } from '../../Services/AuthContext'
+import { ROLES, authStyles, PHONE_RE } from './AuthShared'
 const { width, height } = Dimensions.get("window");
-
-const ROLES = [
-    { key: "farmer",    labelKey: "farmer"        },
-    { key: "mill",      labelKey: "roleMill"       },
-    { key: "lab",       labelKey: "roleLab"        },
-    { key: "regulator", labelKey: "roleRegulator"  },
-    { key: "consumer",  labelKey: "roleConsumer"   },
-    { key: "admin",     labelKey: "roleAdmin"      },
-];
 
 export default function SingIn({ navigation }) {
     const { t } = useI18n();
     const { signIn } = useAuth();
-    const [username, setUsername] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("farmer");
     const [submitting, setSubmitting] = useState(false);
 
     const handleSingIn = async () => {
-        if (!username.trim() || !password) {
+        if (!phone.trim() || !password) {
             Alert.alert(t("loginFailed"), t("enterCredentials"));
+            return;
+        }
+        if (!PHONE_RE.test(phone.trim())) {
+            Alert.alert(t("loginFailed"), t("invalidMobileNumber"));
             return;
         }
         setSubmitting(true);
         try {
-            await signIn(username, password, role);
+            await signIn(phone.trim(), password, role);
         } catch (error) {
-            Alert.alert(t("loginFailed"), error.message || "Invalid username or password");
+            Alert.alert(t("loginFailed"), error.message || "Invalid mobile number or password");
         } finally {
             setSubmitting(false);
         }
@@ -48,13 +45,15 @@ export default function SingIn({ navigation }) {
                 <Text style={styles.loginText}>{t("login")}</Text>
                 <Input
                     style={{ marginTop: height * 0.02 }}
-                    value={username}
-                    setValue={setUsername}
-                    placeholder={t("username")}
+                    value={phone}
+                    setValue={setPhone}
+                    placeholder={t("mobileNumber")}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.014}
                     backgroundColor={"white"}
+                    keyboardType="number-pad"
+                    maxLength={11}
                     autoCapitalize="none"
                     autoCorrect={false}
                 />
@@ -72,16 +71,16 @@ export default function SingIn({ navigation }) {
                 <Text style={styles.forgotText} onPress={() => navigation.navigate("ForgetPassword")}>{t("forgotPassword")}</Text>
 
                 {/* Role selector */}
-                <Text style={styles.roleLabel}>{t("selectRole")}</Text>
-                <View style={styles.roleGrid}>
+                <Text style={authStyles.roleLabel}>{t("selectRole")}</Text>
+                <View style={authStyles.roleGrid}>
                     {ROLES.map((r) => (
                         <TouchableOpacity
                             key={r.key}
                             activeOpacity={0.8}
-                            style={[styles.roleBtn, role === r.key && styles.roleBtnActive]}
+                            style={[authStyles.roleBtn, role === r.key && authStyles.roleBtnActive]}
                             onPress={() => setRole(r.key)}
                         >
-                            <Text style={[styles.roleTxt, role === r.key && styles.roleTxtActive]}>
+                            <Text style={[authStyles.roleTxt, role === r.key && authStyles.roleTxtActive]}>
                                 {t(r.labelKey)}
                             </Text>
                         </TouchableOpacity>
@@ -96,6 +95,13 @@ export default function SingIn({ navigation }) {
                     color={"white"}
                     style={{ marginTop: height * 0.03 }}
                 />
+
+                <Text style={authStyles.switchText}>
+                    {t("noAccount")}{" "}
+                    <Text style={authStyles.switchLink} onPress={() => navigation.navigate("SignUp")}>
+                        {t("signUp")}
+                    </Text>
+                </Text>
             </ScrollView>
         </Container>
     );
@@ -120,38 +126,5 @@ const styles = StyleSheet.create({
         fontSize: FontSize.F17,
         marginTop: height * 0.01,
         width: width * 0.85,
-    },
-    roleLabel: {
-        alignSelf: "flex-start",
-        marginLeft: width * 0.07,
-        marginTop: height * 0.025,
-        marginBottom: height * 0.01,
-        fontSize: FontSize.F16,
-        fontWeight: "600",
-        color: "green",
-    },
-    roleGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        width: width * 0.86,
-        gap: 10,
-    },
-    roleBtn: {
-        borderWidth: 1.5,
-        borderColor: "green",
-        borderRadius: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-    },
-    roleBtnActive: {
-        backgroundColor: "green",
-    },
-    roleTxt: {
-        color: "green",
-        fontSize: FontSize.F15,
-        fontWeight: "600",
-    },
-    roleTxtActive: {
-        color: "white",
     },
 })

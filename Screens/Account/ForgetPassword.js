@@ -1,4 +1,5 @@
-import { Dimensions, View, StyleSheet, Text, Alert } from 'react-native'
+import { Dimensions, View, StyleSheet, Text } from 'react-native'
+import Alert from "../../Abstracts/Alert";
 import React, { useState } from 'react'
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
@@ -7,32 +8,37 @@ import { FontSize } from '../../Abstracts/Theme'
 import Backward from '../../Abstracts/Backward'
 import { supabase } from '../../Services/supabase'
 import { DEMO_MODE } from '../../Services/config'
+import { PHONE_RE } from './AuthShared'
 const { height, width } = Dimensions.get("screen")
 
 const ForgetPassword = ({ navigation }) => {
-    const [username, setUsername] = useState("")
+    const [phone, setPhone] = useState("")
     const [loading, setLoading] = useState(false)
 
     const handleSend = async () => {
-        if (!username.trim()) {
-            Alert.alert("Required", "Please enter your username.")
+        const normalizedPhone = phone.trim()
+
+        if (!normalizedPhone) {
+            Alert.alert("Required", "Please enter your mobile number.")
+            return
+        }
+        if (!PHONE_RE.test(normalizedPhone)) {
+            Alert.alert("Invalid number", "Enter an 11-digit mobile number starting with 0 (e.g. 03001234567).")
             return
         }
         setLoading(true)
         try {
+            const email = `${normalizedPhone}@agrochain.local`
             if (DEMO_MODE) {
                 await new Promise(r => setTimeout(r, 600))
             } else {
-                const email = `${username.trim().toLowerCase()}@agrochain.local`
                 const { error } = await supabase.auth.signInWithOtp({
                     email,
                     options: { shouldCreateUser: false },
                 })
                 if (error) throw error
             }
-            navigation.navigate("CodeVerificationScreen", {
-                email: `${username.trim().toLowerCase()}@agrochain.local`,
-            })
+            navigation.navigate("CodeVerificationScreen", { email })
         } catch (err) {
             Alert.alert("Error", err.message || "Could not send reset code.")
         } finally {
@@ -46,18 +52,20 @@ const ForgetPassword = ({ navigation }) => {
             <Container style={{ flex: 1, alignItems: 'center', marginTop: height * 0.05 }}>
                 <Text style={styles.title}>Reset Password</Text>
                 <Text style={{ color: "black", marginTop: height * 0.02, width: width * 0.7, fontSize: FontSize.F16, textAlign: "center" }}>
-                    Enter your username and we'll send a reset code.
+                    Enter your mobile number and we'll send a reset code.
                 </Text>
                 <Input
                     style={{ marginTop: height * 0.04 }}
-                    value={username}
-                    setValue={setUsername}
-                    placeholder={"Username"}
+                    value={phone}
+                    setValue={setPhone}
+                    placeholder={"Mobile Number"}
                     width={width * 0.86}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.01}
                     backgroundColor={"white"}
+                    keyboardType="number-pad"
+                    maxLength={11}
                     autoCapitalize="none"
                     autoCorrect={false}
                 />

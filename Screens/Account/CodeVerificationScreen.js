@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { StyleSheet, View, Text, Dimensions, Alert } from 'react-native'
+import { StyleSheet, View, Text, Dimensions } from 'react-native'
+import Alert from "../../Abstracts/Alert";
 import Input from "../../Abstracts/TextInput";
 import { FontSize } from '../../Abstracts/Theme';
 import Container from '../../Abstracts/Container';

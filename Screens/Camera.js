@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import Alert from "../Abstracts/Alert";
 import { Camera } from 'expo-camera';
 
 const CameraScreen = ({ navigation }) => {

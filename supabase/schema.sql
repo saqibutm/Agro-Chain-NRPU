@@ -3,12 +3,15 @@
 -- Replaces Hyperledger Fabric chaincode state with Postgres tables.
 
 -- ── User profiles ────────────────────────────────────────────────────────────
--- Extends Supabase auth.users with username + role.
+-- Extends Supabase auth.users with username + role. There is no email-based
+-- sign-up: "username" holds the user's 11-digit mobile number (e.g.
+-- 03001234567), which the app also uses to build a synthetic
+-- <number>@agrochain.local address for Supabase Auth under the hood.
 create table if not exists public.profiles (
   id       uuid primary key references auth.users(id) on delete cascade,
   username text unique not null,
   role     text not null default 'farmer'
-    check (role in ('farmer','mill','lab','regulator','consumer','admin'))
+    check (role in ('farmer','mill','lab','regulator','consumer'))
 );
 
 -- Auto-create profile row when a new auth user is created.

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, StyleSheet, Dimensions, Switch, Platform, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Dimensions, Switch, Platform, TouchableOpacity } from "react-native";
+import Alert from "../Abstracts/Alert";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Container from "../Abstracts/Container";
 import Input from "../Abstracts/TextInput";

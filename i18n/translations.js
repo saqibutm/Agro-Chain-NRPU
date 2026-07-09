@@ -5,12 +5,12 @@ export const translations = {
     // App
     appName: "AgroChain",
     login: "Login",
-    username: "Username",
+    mobileNumber: "Mobile Number",
     password: "Password",
     forgotPassword: "Forgot Password?",
     submit: "Submit",
     signingIn: "Signing in…",
-    enterCredentials: "Please enter your username and password.",
+    enterCredentials: "Please enter your mobile number and password.",
     loginFailed: "Login failed",
 
     // Commodities / agriculture
@@ -155,18 +155,28 @@ export const translations = {
     roleLab: "Lab Technician",
     roleRegulator: "Regulator",
     roleConsumer: "Consumer",
-    roleAdmin: "Admin",
+    // Sign up
+    signUp: "Sign Up",
+    createAccount: "Create Account",
+    confirmPassword: "Confirm Password",
+    passwordMismatch: "Passwords do not match",
+    accountCreated: "Account Created",
+    alreadyHaveAccount: "Already have an account?",
+    noAccount: "Don't have an account?",
+    signingUp: "Creating account…",
+    passwordTooShort: "Password must be at least 6 characters.",
+    invalidMobileNumber: "Enter an 11-digit mobile number starting with 0 (e.g. 03001234567).",
   },
   ur: {
     // App
     appName: "ایگروچین",
     login: "لاگ ان",
-    username: "صارف نام",
+    mobileNumber: "موبائل نمبر",
     password: "پاس ورڈ",
     forgotPassword: "پاس ورڈ بھول گئے؟",
     submit: "جمع کریں",
     signingIn: "سائن ان ہو رہا ہے…",
-    enterCredentials: "براہ کرم اپنا صارف نام اور پاس ورڈ درج کریں۔",
+    enterCredentials: "براہ کرم اپنا موبائل نمبر اور پاس ورڈ درج کریں۔",
     loginFailed: "لاگ ان ناکام",
 
     // Commodities / agriculture
@@ -311,6 +321,16 @@ export const translations = {
     roleLab: "لیب ٹیکنیشن",
     roleRegulator: "ریگولیٹر",
     roleConsumer: "صارف",
-    roleAdmin: "ایڈمن",
+    // Sign up
+    signUp: "سائن اپ",
+    createAccount: "اکاؤنٹ بنائیں",
+    confirmPassword: "پاس ورڈ کی تصدیق",
+    passwordMismatch: "پاس ورڈ مماثل نہیں",
+    accountCreated: "اکاؤنٹ بنایا گیا",
+    alreadyHaveAccount: "پہلے سے اکاؤنٹ ہے؟",
+    noAccount: "اکاؤنٹ نہیں ہے؟",
+    signingUp: "اکاؤنٹ بن رہا ہے…",
+    passwordTooShort: "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے۔",
+    invalidMobileNumber: "11 ہندسوں کا موبائل نمبر درج کریں جو 0 سے شروع ہو (مثال: 03001234567)۔",
   },
 };

@@ -1,4 +1,5 @@
-import { Dimensions, View, StyleSheet, Text, Alert } from 'react-native'
+import { Dimensions, View, StyleSheet, Text } from 'react-native'
+import Alert from "../../Abstracts/Alert";
 import React, { useState } from 'react'
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";

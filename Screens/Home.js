@@ -44,12 +44,6 @@ const ROLE_ACTIONS = {
         { labelKey: "productJourney",    screen: "ProductJourney"},
         { labelKey: "faqs",              screen: "FAQs"          },
     ],
-    admin:     [
-        { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
-        { labelKey: "recordQualityTest", screen: "LabDashboard"  },
-        { labelKey: "newBatch",          screen: "AddCrop"       },
-        { labelKey: "qrScanner",         screen: "QRScanner"     },
-    ],
 };
 
 // KPI indices to show per role (from the kpis[] array built in component):
@@ -60,7 +54,6 @@ const ROLE_KPIS = {
     lab:       [4, 5, 0, 1],
     regulator: [0, 1, 2, 3, 4, 5],
     consumer:  [2, 3, 4, 5],
-    admin:     [0, 1, 2, 3, 4, 5],
 };
 
 // Greeting i18n key per role.
@@ -70,7 +63,6 @@ const ROLE_GREETING = {
     lab:       "roleLab",
     regulator: "roleRegulator",
     consumer:  "roleConsumer",
-    admin:     "roleAdmin",
 };
 
 // Derive dashboard KPIs from on-chain batches/products/quality reports.

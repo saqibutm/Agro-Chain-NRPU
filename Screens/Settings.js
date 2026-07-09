@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking, Alert } from "react-native";
+import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import Alert from "../Abstracts/Alert";
 import Container from "../Abstracts/Container";
 import Backward from "../Abstracts/Backward";
 import { FontSize } from "../Abstracts/Theme";

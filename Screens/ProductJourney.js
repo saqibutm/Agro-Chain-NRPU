@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, ScrollView, StyleSheet, Dimensions, Alert, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
+import Alert from "../Abstracts/Alert";
 import Backward from "../Abstracts/Backward";
 import Button from "../Abstracts/Button";
 import { FontSize } from "../Abstracts/Theme";
