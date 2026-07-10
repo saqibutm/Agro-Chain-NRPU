@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, TouchableOpacity, Text, View } from 'react-native'
+import { TouchableOpacity, Text, View } from 'react-native'
 
 const Button = ({ style, onPress, text, paddingLeft, btncardname, color,
     width, height, elevation, opacity, backgroundColor, justifyContent,
@@ -8,7 +8,10 @@ const Button = ({ style, onPress, text, paddingLeft, btncardname, color,
     TextIcon, TextIconSize, TextIconColor, paddingVertical, TextIconStyle,
     TailingIcon, TailingSize, TailingColor, fontSize, fontWeight, TailingStyle
 }) => {
-    const styles = StyleSheet.create({
+    // Plain object, not StyleSheet.create() — every value here is prop-driven
+    // and rebuilt on each render anyway, so StyleSheet.create()'s one-time ID
+    // caching (its whole benefit) never applies; it was pure overhead.
+    const styles = {
         row: {
             flexDirection: "row",
         },
@@ -62,7 +65,7 @@ const Button = ({ style, onPress, text, paddingLeft, btncardname, color,
             letterSpacing: letterSpacing ? letterSpacing : 0,
             fontFamily: fontFamily ? fontFamily : null
         }
-    })
+    }
 
     return (
         <>

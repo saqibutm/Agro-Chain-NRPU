@@ -3,12 +3,15 @@ import { Dimensions, StyleSheet, Text, View, Image, ActivityIndicator, ScrollVie
 import Backward from "../Abstracts/Backward";
 import Container from "../Abstracts/Container";
 import Button from "../Abstracts/Button";
+import SyncStatusBar from "../Abstracts/SyncStatusBar";
 import { FontSize } from '../Abstracts/Theme';
 import { useI18n } from "../i18n/I18nContext";
 import { useAuth } from "../Services/AuthContext";
+import { useSync } from "../Services/SyncContext";
 import { queryProduct } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { ALL_PRODUCTS, getProductById } from "../Services/demoData";
+import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 const { width, height } = Dimensions.get("window");
 
 const Row = ({ label, value }) => (
@@ -21,6 +24,7 @@ const Row = ({ label, value }) => (
 const ProductDetail = ({ route, navigation }) => {
     const { t } = useI18n();
     const { user } = useAuth();
+    const { isOnline } = useSync();
     const username = user?.username || DEFAULT_USERNAME;
 
     const productID = route?.params?.productID;
@@ -29,27 +33,46 @@ const ProductDetail = ({ route, navigation }) => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(!!productID);
     const [error, setError] = useState(null);
+    const [cachedAt, setCachedAt] = useState(null);
 
     useEffect(() => {
         if (!productID) return;
 
         (async () => {
+            if (DEMO_MODE) {
+                setProduct(getProductById(productID) || ALL_PRODUCTS[0]);
+                setLoading(false);
+                return;
+            }
+
+            // Show the last-known copy immediately, offline or not, so the
+            // screen isn't blank while (or if) the live fetch runs.
+            const cached = await cacheGet(CacheKeys.product(productID) + ":detail");
+            if (cached) {
+                setProduct(cached.data.product ?? cached.data);
+                setCachedAt(cached.savedAt);
+                setLoading(false);
+            }
+
+            if (!isOnline) {
+                if (!cached) setLoading(false);
+                return;
+            }
+
             try {
-                let data;
-                if (DEMO_MODE) {
-                    data = getProductById(productID) || ALL_PRODUCTS[0];
-                } else {
-                    const res = await queryProduct(username, productID);
-                    data = res?.product ?? res;
-                }
+                const res = await queryProduct(username, productID);
+                const data = res?.product ?? res;
                 setProduct(data);
+                setCachedAt(null);
+                setError(null);
+                await cacheSet(CacheKeys.product(productID) + ":detail", { product: data });
             } catch (e) {
-                setError(e.message);
+                if (!cached) setError(e.message);
             } finally {
                 setLoading(false);
             }
         })();
-    }, [productID, username]);
+    }, [productID, username, isOnline]);
 
     const renderContent = () => {
         if (loading) {
@@ -70,6 +93,11 @@ const ProductDetail = ({ route, navigation }) => {
                         style={styles.photo}
                         resizeMode="cover"
                     />
+                )}
+                {cachedAt && (
+                    <Text style={styles.cachedNote}>
+                        Last synced {Math.round((Date.now() - cachedAt) / 60000)}m ago
+                    </Text>
                 )}
                 {product && (
                     <>
@@ -115,6 +143,7 @@ const ProductDetail = ({ route, navigation }) => {
                 <Backward onPress={() => navigation.goBack()} />
                 <Text style={styles.headText}>{t("productDetails")}</Text>
             </View>
+            <SyncStatusBar />
             <Container style={{ flex: 1, marginTop: height * 0.03, paddingHorizontal: width * 0.06 }}>
                 {renderContent()}
             </Container>
@@ -157,6 +186,12 @@ const styles = StyleSheet.create({
         color: "#888",
         marginTop: height * 0.08,
         fontSize: 16,
+    },
+    cachedNote: {
+        textAlign: "center",
+        color: "#888",
+        fontSize: FontSize.F13,
+        marginBottom: height * 0.015,
     },
 })
 

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import NetInfo from "@react-native-community/netinfo";
 import { enqueue, pendingCount, processQueue, abandonedItems } from "./SyncQueue";
-import { dispatch } from "./api";
+import { dispatch, isPermanentError } from "./api";
 
 const SyncContext = createContext(null);
 
@@ -40,6 +40,12 @@ export const SyncProvider = ({ children }) => {
         try {
           return { mode: "online", result: await dispatch(action, payload) };
         } catch (err) {
+          if (isPermanentError(err)) {
+            // Bad data (duplicate ID, missing reference, etc.) — retrying
+            // won't help, so fail now instead of queuing something that can
+            // never succeed.
+            return { mode: "failed", error: err.message };
+          }
           // Network blipped mid-request — fall back to the queue.
           await enqueue(action, payload);
           await refreshPending();

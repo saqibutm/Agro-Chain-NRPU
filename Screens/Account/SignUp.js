@@ -19,7 +19,9 @@ export default function SignUp({ navigation }) {
     const [password, setPassword]               = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [role, setRole]                       = useState("farmer");
+    const [roleMenuOpen, setRoleMenuOpen]        = useState(false);
     const [submitting, setSubmitting]           = useState(false);
+    const selectedRole = ROLES.find((r) => r.key === role);
 
     const handleSignUp = async () => {
         const normalizedPhone = phone.trim();
@@ -122,21 +124,32 @@ export default function SignUp({ navigation }) {
                     secureTextEntry
                 />
 
-                {/* Role selector */}
+                {/* Role selector — dropdown */}
                 <Text style={authStyles.roleLabel}>{t("selectRole")}</Text>
-                <View style={authStyles.roleGrid}>
-                    {ROLES.map((r) => (
-                        <TouchableOpacity
-                            key={r.key}
-                            activeOpacity={0.8}
-                            style={[authStyles.roleBtn, role === r.key && authStyles.roleBtnActive]}
-                            onPress={() => setRole(r.key)}
-                        >
-                            <Text style={[authStyles.roleTxt, role === r.key && authStyles.roleTxtActive]}>
-                                {t(r.labelKey)}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                <View style={styles.dropdownWrap}>
+                    <TouchableOpacity
+                        style={styles.dropdownSelector}
+                        activeOpacity={0.8}
+                        onPress={() => setRoleMenuOpen((open) => !open)}
+                    >
+                        <Text style={styles.dropdownSelectorText}>{t(selectedRole.labelKey)}</Text>
+                        <Text style={styles.dropdownChevron}>{roleMenuOpen ? "▲" : "▼"}</Text>
+                    </TouchableOpacity>
+                    {roleMenuOpen && (
+                        <View style={styles.dropdownList}>
+                            {ROLES.map((r) => (
+                                <TouchableOpacity
+                                    key={r.key}
+                                    style={styles.dropdownOption}
+                                    onPress={() => { setRole(r.key); setRoleMenuOpen(false); }}
+                                >
+                                    <Text style={[styles.dropdownOptionText, role === r.key && styles.dropdownOptionTextActive]}>
+                                        {t(r.labelKey)}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
                 </View>
 
                 <Button
@@ -173,4 +186,37 @@ const styles = StyleSheet.create({
         color: "green",
         marginBottom: 6,
     },
+    dropdownWrap: {
+        width: width * 0.86,
+        zIndex: 10,
+    },
+    dropdownSelector: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderWidth: 1.5,
+        borderColor: "green",
+        borderRadius: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        backgroundColor: "white",
+    },
+    dropdownSelectorText: { color: "green", fontSize: FontSize.F16, fontWeight: "600" },
+    dropdownChevron: { color: "green", fontSize: 12 },
+    dropdownList: {
+        marginTop: 4,
+        borderWidth: 1.5,
+        borderColor: "green",
+        borderRadius: 8,
+        backgroundColor: "white",
+        overflow: "hidden",
+    },
+    dropdownOption: {
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: "#dCe8dC",
+    },
+    dropdownOptionText: { color: "#333", fontSize: FontSize.F15, fontWeight: "500" },
+    dropdownOptionTextActive: { color: "green", fontWeight: "700" },
 });

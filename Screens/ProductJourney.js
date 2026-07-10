@@ -143,15 +143,26 @@ const ProductJourney = ({ navigation, route }) => {
     const passed = product.quality?.result === "Passed";
 
     const handleReport = async () => {
-        await submit(Actions.REPORT_CONSUMER_ISSUE, {
+        const { mode, error } = await submit(Actions.REPORT_CONSUMER_ISSUE, {
             username,
             productID: product.productID,
             district: product.farmOrigin?.district,
-            issueFlag: true,
-            issueDesc: "Consumer-reported quality concern",
+            description: "Consumer-reported quality concern",
         });
+
+        if (mode === "failed") {
+            Alert.alert(t("reportIssue"), error);
+            return;
+        }
         setReported(true);
-        Alert.alert(t("reportIssue"), "Thank you — your report has been recorded.");
+        if (mode === "queued") {
+            Alert.alert(
+                t("savedOffline"),
+                error ? `${t("offlineQueue")}\n(${error})` : t("offlineQueue")
+            );
+        } else {
+            Alert.alert(t("reportIssue"), "Thank you — your report has been recorded.");
+        }
     };
 
     return (

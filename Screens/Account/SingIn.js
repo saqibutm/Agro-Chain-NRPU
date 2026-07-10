@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Dimensions, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Dimensions, StyleSheet, Image, ScrollView } from "react-native";
 import Alert from "../../Abstracts/Alert";
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
@@ -7,7 +7,7 @@ import Input from "../../Abstracts/TextInput";
 import { Colors, FontSize } from '../../Abstracts/Theme'
 import { useI18n } from '../../i18n/I18nContext'
 import { useAuth } from '../../Services/AuthContext'
-import { ROLES, authStyles, PHONE_RE } from './AuthShared'
+import { authStyles, PHONE_RE } from './AuthShared'
 const { width, height } = Dimensions.get("window");
 
 export default function SingIn({ navigation }) {
@@ -15,7 +15,6 @@ export default function SingIn({ navigation }) {
     const { signIn } = useAuth();
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState("farmer");
     const [submitting, setSubmitting] = useState(false);
 
     const handleSingIn = async () => {
@@ -29,7 +28,9 @@ export default function SingIn({ navigation }) {
         }
         setSubmitting(true);
         try {
-            await signIn(phone.trim(), password, role);
+            // Role comes from the account's own profile, not a UI selection —
+            // signIn() prefers the stored profile role over this default.
+            await signIn(phone.trim(), password);
         } catch (error) {
             Alert.alert(t("loginFailed"), error.message || "Invalid mobile number or password");
         } finally {
@@ -69,23 +70,6 @@ export default function SingIn({ navigation }) {
                     secureTextEntry
                 />
                 <Text style={styles.forgotText} onPress={() => navigation.navigate("ForgetPassword")}>{t("forgotPassword")}</Text>
-
-                {/* Role selector */}
-                <Text style={authStyles.roleLabel}>{t("selectRole")}</Text>
-                <View style={authStyles.roleGrid}>
-                    {ROLES.map((r) => (
-                        <TouchableOpacity
-                            key={r.key}
-                            activeOpacity={0.8}
-                            style={[authStyles.roleBtn, role === r.key && authStyles.roleBtnActive]}
-                            onPress={() => setRole(r.key)}
-                        >
-                            <Text style={[authStyles.roleTxt, role === r.key && authStyles.roleTxtActive]}>
-                                {t(r.labelKey)}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
 
                 <Button
                     text={submitting ? t("signingIn") : t("submit")}

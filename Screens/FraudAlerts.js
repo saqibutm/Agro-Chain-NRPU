@@ -13,18 +13,20 @@ import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 import { evaluate, checkDuplicateQR, evaluateQualityReports, Severity } from "../Services/fraudDetection";
 const { width, height } = Dimensions.get("window");
 
-// Sample rule-engine inputs (Pakistan-specific batch IDs) — in production these
-// come from the wheat_batches/batch_transfers/quality_reports tables.
-const sampleRecords = [
+// Sample rule-engine inputs (Pakistan-specific batch IDs) for DEMO_MODE only.
+// These must never reach real users — weight-variance/extraction-ratio/
+// duplicate-QR checks against real transfer/scan data aren't wired up yet
+// (only the quality-report-based checks are, via loadQualityAlerts below).
+const sampleRecords = DEMO_MODE ? [
     { batchID: "WBATCH-FSD-2025-0001", weightAtPickup: 5000, weightAtDelivery: 4760 },
     { batchID: "WBATCH-SWL-2025-0003", wheatInputKg: 1000, flourOutputKg: 920 },
     { batchID: "SBATCH-RYK-2025-0002", wheatInputKg: 1000, flourOutputKg: 450 },
     { batchID: "SBATCH-JHG-2026-0101", departureTime: "2026-03-01T08:00:00Z", arrivalTime: "2026-03-05T08:00:00Z" },
-];
-const sampleScans = [
+] : [];
+const sampleScans = DEMO_MODE ? [
     { productID: "WHT-FSD-2025-0001", district: "Faisalabad" },
     { productID: "WHT-FSD-2025-0001", district: "Lahore" },
-];
+] : [];
 
 const severityColor = {
     [Severity.HIGH]: "#c62828",

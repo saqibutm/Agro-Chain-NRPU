@@ -17,7 +17,7 @@ export const ROLES = [
     { key: "consumer",  labelKey: "roleConsumer"   },
 ];
 
-// Role selector + screen-switch link styles shared by SingIn and SignUp.
+// Role label + screen-switch link styles shared by SingIn and SignUp.
 export const authStyles = StyleSheet.create({
     roleLabel: {
         alignSelf: "flex-start",
@@ -28,22 +28,6 @@ export const authStyles = StyleSheet.create({
         fontWeight: "600",
         color: "green",
     },
-    roleGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        width: width * 0.86,
-        gap: 10,
-    },
-    roleBtn: {
-        borderWidth: 1.5,
-        borderColor: "green",
-        borderRadius: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-    },
-    roleBtnActive: { backgroundColor: "green" },
-    roleTxt: { color: "green", fontSize: FontSize.F15, fontWeight: "600" },
-    roleTxtActive: { color: "white" },
     switchText: {
         marginTop: height * 0.02,
         fontSize: FontSize.F16,

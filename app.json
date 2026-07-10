@@ -59,7 +59,8 @@
         {
           "locationWhenInUsePermission": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }

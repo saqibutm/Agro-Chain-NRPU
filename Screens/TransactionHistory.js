@@ -6,10 +6,8 @@ import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { useAuth } from "../Services/AuthContext";
 import { useI18n } from "../i18n/I18nContext";
 import { ALL_PRODUCTS } from "../Services/demoData";
-import { cacheGet, cacheSet } from "../Services/cache";
+import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
 const { width, height } = Dimensions.get("window");
-
-const CACHE_KEY = "@agrochain/cache/wheat_batches";
 
 const TransactionHistory = ({ navigation }) => {
     const { t } = useI18n();
@@ -23,7 +21,7 @@ const TransactionHistory = ({ navigation }) => {
 
     const load = useCallback(async (isRefresh = false) => {
         if (!isRefresh) {
-            const cached = await cacheGet(CACHE_KEY);
+            const cached = await cacheGet(CacheKeys.WHEAT_BATCHES);
             if (cached) {
                 setBatches(cached.data);
                 setCachedAt(cached.savedAt);
@@ -58,7 +56,7 @@ const TransactionHistory = ({ navigation }) => {
             }
             setBatches(data);
             setCachedAt(Date.now());
-            await cacheSet(CACHE_KEY, data);
+            await cacheSet(CacheKeys.WHEAT_BATCHES, data);
         } catch {
             // Keep cached/demo data on error
         } finally {

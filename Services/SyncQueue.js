@@ -1,7 +1,7 @@
 // Persistent offline write-queue.
 // Captures actions while offline and replays them in order when online.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { dispatch } from "./api";
+import { dispatch, isPermanentError } from "./api";
 
 const QUEUE_KEY = "@agrochain/sync_queue";
 const MAX_ATTEMPTS = 5;
@@ -81,7 +81,10 @@ export async function processQueue() {
       const attempts = record.attempts + 1;
       remaining.push({
         ...record,
-        status: attempts >= MAX_ATTEMPTS ? "abandoned" : "failed",
+        // A permanent error (bad data, not a network blip) will never
+        // succeed no matter how many times we retry — abandon it right
+        // away instead of burning through MAX_ATTEMPTS pointlessly.
+        status: isPermanentError(err) || attempts >= MAX_ATTEMPTS ? "abandoned" : "failed",
         attempts,
         error: err.message,
       });

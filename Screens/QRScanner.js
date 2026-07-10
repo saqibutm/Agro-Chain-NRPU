@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Animated } from "react-native";
-import { CameraView, Camera } from "expo-camera";
+import { Camera } from "expo-camera";
 
 const QRScanner = ({ navigation }) => {
     const [hasPermission, setHasPermission] = useState(null);
@@ -45,10 +45,10 @@ const QRScanner = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.innerContainer}>
-                <CameraView
-                    flash="auto"
-                    onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-                    barcodeScannerSettings={{
+                <Camera
+                    flashMode="auto"
+                    onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+                    barCodeScannerSettings={{
                         barCodeTypes: ["qr", "pdf417"],
                     }}
                     style={StyleSheet.absoluteFillObject}

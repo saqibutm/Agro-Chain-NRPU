@@ -28,5 +28,6 @@ export const CacheKeys = {
   KPIS: "@agrochain/cache/kpis",
   PRODUCTS: "@agrochain/cache/products",
   QUALITY_REPORTS: "@agrochain/cache/quality_reports",
+  WHEAT_BATCHES: "@agrochain/cache/wheat_batches",
   product: (id) => `@agrochain/cache/product/${id}`,
 };

@@ -65,6 +65,12 @@ const AddMill = ({ route, navigation }) => {
 
 		const { mode, error } = await submit(Actions.SEND_WHEAT_BATCH, payload);
 
+		if (mode === "failed") {
+			// Permanent error (e.g. that batch number doesn't exist) — won't
+			// resolve by retrying, so surface it now instead of queuing it forever.
+			Alert.alert(t("missingFields"), error);
+			return;
+		}
 		if (mode === "queued") {
 			Alert.alert(
 				t("savedOffline"),

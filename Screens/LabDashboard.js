@@ -96,6 +96,12 @@ const LabDashboard = ({ navigation }) => {
 		const { mode, error } = await submit(Actions.RECORD_QUALITY_TEST, payload);
 		setSubmitting(false);
 
+		if (mode === "failed") {
+			// Permanent error (e.g. duplicate Report ID) — won't resolve by
+			// retrying, so surface it now instead of queuing it forever.
+			Alert.alert(t("recordQualityTest"), error);
+			return;
+		}
 		if (mode === "queued") {
 			Alert.alert(
 				t("savedOffline"),

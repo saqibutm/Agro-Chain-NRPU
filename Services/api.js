@@ -18,6 +18,32 @@ async function _currentUserId() {
   return session?.user?.id ?? null;
 }
 
+// Postgres error classes that mean "this write can never succeed as-is" —
+// e.g. a duplicate report ID, or a batch number that doesn't exist yet.
+// Retrying (which the offline sync queue would otherwise do up to 5 times)
+// wastes time and gives the user false hope; these should fail immediately
+// instead of being queued for later.
+const PERMANENT_ERROR_CODES = new Set([
+  "23505", // unique_violation
+  "23503", // foreign_key_violation
+  "23502", // not_null_violation
+  "23514", // check_violation
+  "42501", // insufficient_privilege (RLS policy rejected the write)
+]);
+
+export function isPermanentError(err) {
+  return !!err?.code && PERMANENT_ERROR_CODES.has(err.code);
+}
+
+// Wrap a Supabase/PostgrestError, preserving its Postgres error `code` so
+// callers can tell a permanent failure (bad data) from a transient one
+// (network blip) — plain `new Error(message)` used to drop this entirely.
+function _dispatchError(error) {
+  const e = new Error(error.message);
+  e.code = error.code;
+  return e;
+}
+
 // ── Write dispatcher (used by SyncQueue for offline replay) ──────────────────
 export async function dispatch(action, payload) {
   const createdBy = await _currentUserId();
@@ -37,7 +63,7 @@ export async function dispatch(action, payload) {
         status:         "Created",
         created_by:     createdBy,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw _dispatchError(error);
       return { success: true };
     }
 
@@ -51,7 +77,7 @@ export async function dispatch(action, payload) {
         location:       payload.location || null,
         created_by:     createdBy,
       });
-      if (tErr) throw new Error(tErr.message);
+      if (tErr) throw _dispatchError(tErr);
       // Update batch status — error is non-fatal; transfer is already recorded.
       const { error: uErr } = await supabase
         .from("wheat_batches")
@@ -78,7 +104,7 @@ export async function dispatch(action, payload) {
         cert_hash:  payload.certHash || null,
         created_by: createdBy,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw _dispatchError(error);
       return { success: true };
     }
 
@@ -89,7 +115,7 @@ export async function dispatch(action, payload) {
         description: payload.description || null,
         reported_by: createdBy,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw _dispatchError(error);
       return { success: true };
     }
 
@@ -99,6 +125,28 @@ export async function dispatch(action, payload) {
 }
 
 // ── Read helpers ─────────────────────────────────────────────────────────────
+
+// Used by the Farmer/Crop "Valid" screens to confirm an entity ID actually
+// has a batch on record before it's forwarded into the mill-transfer step.
+export async function checkEntityExists(entityID) {
+  const { count, error } = await supabase
+    .from("wheat_batches")
+    .select("*", { count: "exact", head: true })
+    .eq("entity_id", entityID);
+  if (error) throw new Error(error.message);
+  return (count || 0) > 0;
+}
+
+// Used by the Mill "Valid" screen to confirm a transfer to this mill ID
+// actually exists before confirming receipt.
+export async function checkMillTransferExists(millID) {
+  const { count, error } = await supabase
+    .from("batch_transfers")
+    .select("*", { count: "exact", head: true })
+    .eq("to_entity_id", millID);
+  if (error) throw new Error(error.message);
+  return (count || 0) > 0;
+}
 
 export async function queryWheatBatch(username, wheatBatchID) {
   const { data, error } = await supabase

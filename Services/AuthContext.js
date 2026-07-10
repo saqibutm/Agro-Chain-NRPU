@@ -2,8 +2,8 @@
 // Uses Supabase Auth. Credentials use the pattern phone@agrochain.local so
 // users only ever type their mobile number — no email address is required.
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
+import { secureSessionStorage } from "./secureStorage";
 import { DEMO_MODE } from "./config";
 
 const SESSION_KEY = "@agrochain/session";
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(SESSION_KEY);
+        const raw = await secureSessionStorage.getItem(SESSION_KEY);
         if (raw) setUser(JSON.parse(raw));
       } finally {
         setLoading(false);
@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
-          await AsyncStorage.removeItem(SESSION_KEY);
+          await secureSessionStorage.removeItem(SESSION_KEY);
           setUser(null);
         }
       }
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const session = { username: sessionPhone, role: sessionRole };
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return session;
   }, []);
@@ -82,14 +82,14 @@ export const AuthProvider = ({ children }) => {
       username: profile?.username || fallbackPhone,
       role:     profile?.role     || fallbackRole,
     };
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
     setUser(session);
     return session;
   }, []);
 
   const signOut = useCallback(async () => {
     if (!DEMO_MODE) await supabase.auth.signOut().catch(() => {});
-    await AsyncStorage.removeItem(SESSION_KEY);
+    await secureSessionStorage.removeItem(SESSION_KEY);
     setUser(null);
   }, []);
 
