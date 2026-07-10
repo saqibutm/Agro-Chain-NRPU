@@ -42,7 +42,6 @@ export default function SingIn({ navigation }) {
         <Container style={{ alignItems: "center", justifyContent: "flex-start", paddingHorizontal: width * 0.02, paddingVertical: height * 0.02, flex: 1 }}>
             <ScrollView contentContainerStyle={{ alignItems: "center", paddingBottom: height * 0.04 }} showsVerticalScrollIndicator={false}>
                 <Image source={require("../../Images/Logo.png")} resizeMode="contain" style={{ width: width * 0.6, height: height * 0.25 }} />
-                <Text style={styles.headText}>{t("appName")}</Text>
                 <Text style={styles.loginText}>{t("login")}</Text>
                 <Input
                     style={{ marginTop: height * 0.02 }}
@@ -68,6 +67,7 @@ export default function SingIn({ navigation }) {
                     paddingVertical={height * 0.014}
                     backgroundColor={"white"}
                     secureTextEntry
+                    showPasswordToggle
                 />
                 <Text style={styles.forgotText} onPress={() => navigation.navigate("ForgetPassword")}>{t("forgotPassword")}</Text>
 
@@ -92,13 +92,6 @@ export default function SingIn({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    headText: {
-        fontSize: FontSize.F40,
-        fontWeight: "bold",
-        marginBottom: height * 0.01,
-        marginTop: -height * 0.01,
-        color: "green",
-    },
     loginText: {
         fontSize: FontSize.F28,
         fontWeight: "600",

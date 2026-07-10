@@ -84,7 +84,6 @@ export default function SignUp({ navigation }) {
         <Container style={{ alignItems: "center", justifyContent: "flex-start", paddingHorizontal: width * 0.02, paddingVertical: height * 0.02, flex: 1 }}>
             <ScrollView contentContainerStyle={{ alignItems: "center", paddingBottom: height * 0.04 }} showsVerticalScrollIndicator={false}>
                 <Image source={require("../../Images/Logo.png")} resizeMode="contain" style={{ width: width * 0.55, height: height * 0.2 }} />
-                <Text style={styles.headText}>{t("appName")}</Text>
                 <Text style={styles.titleText}>{t("createAccount")}</Text>
 
                 <Input
@@ -92,6 +91,7 @@ export default function SignUp({ navigation }) {
                     value={phone}
                     setValue={setPhone}
                     placeholder={t("mobileNumber")}
+                    width={width * 0.86}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.014}
@@ -106,22 +106,26 @@ export default function SignUp({ navigation }) {
                     value={password}
                     setValue={setPassword}
                     placeholder={t("password")}
+                    width={width * 0.86}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.014}
                     backgroundColor="white"
                     secureTextEntry
+                    showPasswordToggle
                 />
                 <Input
                     style={{ marginTop: height * 0.015 }}
                     value={confirmPassword}
                     setValue={setConfirmPassword}
                     placeholder={t("confirmPassword")}
+                    width={width * 0.86}
                     fontSize={FontSize.F18}
                     paddingHorizontal={width * 0.04}
                     paddingVertical={height * 0.014}
                     backgroundColor="white"
                     secureTextEntry
+                    showPasswordToggle
                 />
 
                 {/* Role selector — dropdown */}
@@ -173,13 +177,6 @@ export default function SignUp({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    headText: {
-        fontSize: FontSize.F36,
-        fontWeight: "bold",
-        color: "green",
-        marginBottom: height * 0.005,
-        marginTop: -height * 0.005,
-    },
     titleText: {
         fontSize: FontSize.F24,
         fontWeight: "600",

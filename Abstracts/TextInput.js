@@ -1,5 +1,7 @@
-import React from 'react';
-import {StyleSheet, TextInput, View} from 'react-native';
+import React, { useState } from 'react';
+import {StyleSheet, TextInput, TouchableOpacity, View} from 'react-native';
+import Eye from '../Svgs/Eye';
+import EyeOff from '../Svgs/EyeOff';
 
 const Input = ({
   width,
@@ -35,9 +37,12 @@ const Input = ({
   autoCapitalize,
   autoCorrect,
   secureTextEntry,
+  showPasswordToggle,
   maxLength,
   returnKeyType,
 }) => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const canToggle = secureTextEntry && showPasswordToggle;
   const styles = StyleSheet.create({
     row: {
       flexDirection: 'row',
@@ -77,6 +82,11 @@ const Input = ({
       flex: 0.15,
       alignItems: 'center',
     },
+    toggleBtn: {
+      paddingHorizontal: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
   return (
     <View style={[styles.row, styles.view, style]}>
@@ -111,10 +121,23 @@ const Input = ({
         keyboardType={keyboardType ?? 'default'}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
-        secureTextEntry={secureTextEntry}
+        secureTextEntry={canToggle ? !passwordVisible : secureTextEntry}
         maxLength={maxLength}
         returnKeyType={returnKeyType}
       />
+      {canToggle ? (
+        <TouchableOpacity
+          style={styles.toggleBtn}
+          activeOpacity={0.7}
+          onPress={() => setPasswordVisible((v) => !v)}
+        >
+          {passwordVisible ? (
+            <EyeOff width={(fontSize ?? 12) * 1.3} height={(fontSize ?? 12) * 1.3} color={color ?? '#555'} />
+          ) : (
+            <Eye width={(fontSize ?? 12) * 1.3} height={(fontSize ?? 12) * 1.3} color={color ?? '#555'} />
+          )}
+        </TouchableOpacity>
+      ) : null}
       {Tailing_icon !== undefined ? (
         TailingButton !== undefined ? (
           <TailingButton

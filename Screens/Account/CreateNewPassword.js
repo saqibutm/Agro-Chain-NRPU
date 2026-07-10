@@ -66,6 +66,7 @@ const CreateNewPassword = ({ navigation }) => {
                     backgroundColor={"white"}
                     style={{ marginTop: height * 0.04 }}
                     secureTextEntry
+                    showPasswordToggle
                 />
                 <Input
                     value={formData.confirmPassword}
@@ -78,6 +79,7 @@ const CreateNewPassword = ({ navigation }) => {
                     backgroundColor={"white"}
                     style={{ marginTop: height * 0.016 }}
                     secureTextEntry
+                    showPasswordToggle
                 />
                 <Button
                     text={loading ? "Updating…" : "Reset Password"}

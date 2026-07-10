@@ -19,6 +19,11 @@ export const AuthProvider = ({ children }) => {
       try {
         const raw = await secureSessionStorage.getItem(SESSION_KEY);
         if (raw) setUser(JSON.parse(raw));
+      } catch {
+        // Corrupt/unparsable session (e.g. stale plaintext data left over
+        // from before secure storage was added) — drop it and fall through
+        // to the sign-in screen instead of hanging or crashing.
+        await secureSessionStorage.removeItem(SESSION_KEY);
       } finally {
         setLoading(false);
       }
@@ -33,7 +38,15 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
-          await secureSessionStorage.removeItem(SESSION_KEY);
+          // This fires on every fresh launch with no session yet, so
+          // removeItem() is often clearing a key that was never set —
+          // don't let that (or any other storage hiccup) become an
+          // unhandled promise rejection.
+          try {
+            await secureSessionStorage.removeItem(SESSION_KEY);
+          } catch {
+            // Best-effort cleanup — nothing more useful to do here.
+          }
           setUser(null);
         }
       }
@@ -63,7 +76,12 @@ export const AuthProvider = ({ children }) => {
     }
 
     const session = { username: sessionPhone, role: sessionRole };
-    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    // Supabase has already authenticated this user by this point — local
+    // session caching is a convenience (skip sign-in next launch), not a
+    // precondition. Never let it block a successful login.
+    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session)).catch((err) => {
+      console.warn("signIn: could not persist local session:", err.message);
+    });
     setUser(session);
     return session;
   }, []);
@@ -82,14 +100,16 @@ export const AuthProvider = ({ children }) => {
       username: profile?.username || fallbackPhone,
       role:     profile?.role     || fallbackRole,
     };
-    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session)).catch((err) => {
+      console.warn("adoptSession: could not persist local session:", err.message);
+    });
     setUser(session);
     return session;
   }, []);
 
   const signOut = useCallback(async () => {
     if (!DEMO_MODE) await supabase.auth.signOut().catch(() => {});
-    await secureSessionStorage.removeItem(SESSION_KEY);
+    await secureSessionStorage.removeItem(SESSION_KEY).catch(() => {});
     setUser(null);
   }, []);
 

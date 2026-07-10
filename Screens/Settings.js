@@ -63,7 +63,7 @@ const Settings = ({ navigation }) => {
             <TouchableOpacity
                 style={styles.btn}
                 onPress={() => Linking.openURL("https://wa.me/923001750077").catch(() =>
-                    Alert.alert(t("contactWhatsapp"), "+92 300 1750077")
+                    Alert.alert(t("contactWhatsapp"), "Could not open WhatsApp. Please make sure it's installed.")
                 )}
             >
                 <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("contactWhatsapp")}</Text>
