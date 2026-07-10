@@ -29,22 +29,19 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Apple Ap
 
 ## 3. Short description (30 chars max — shown in search)
 
-> Farm-to-consumer blockchain
+> Farm-to-consumer traceability
 
 ---
 
 ## 4. Full description (4000 chars max — same as Play Store)
 
-> **AgroChain** brings complete farm-to-consumer traceability to Pakistan's wheat and
-> sugarcane supply chains, powered by Hyperledger Fabric blockchain.
->
 > [paste full description from STORE.md §4]
 
 ---
 
 ## 5. Keywords (100 chars, comma-separated)
 
-> blockchain,agriculture,supply chain,wheat,sugar,Pakistan,traceability,food safety,QR
+> agriculture,supply chain,wheat,sugar,Pakistan,traceability,food safety,QR,farm to table
 
 ---
 
@@ -57,8 +54,8 @@ All 8 English screenshots generated. Upload in order 01–08.
 All 8 English screenshots generated. **Required** because `supportsTablet: true`.
 
 ### Urdu (Pakistan) localization
-- iPhone 6.9": `store/screenshots/ios-6.9-ur/` — 5 screenshots available
-- iPad 12.9": `store/screenshots/ios-ipad-ur/` — 5 screenshots available
+- iPhone 6.9": `store/screenshots/ios-6.9-ur/` — 8 screenshots available
+- iPad 12.9": `store/screenshots/ios-ipad-ur/` — 8 screenshots available
 
 ---
 
@@ -70,13 +67,20 @@ All 8 English screenshots generated. **Required** because `supportsTablet: true`
 
 ## 8. App Review information (critical — Apple rejects without this)
 
+The app signs in with a mobile number (11 digits, starting with 0), not an email or
+username — there is no email field anywhere in the sign-in/sign-up flow.
+
 In App Store Connect → App Review Information:
 
 | Field | Value |
 |-------|-------|
-| Demo username | `demo` (or any valid test account) |
-| Demo password | your test password |
-| Notes | "This app includes a full offline demo mode. All screens work without a backend. After logging in with the demo credentials, all supply-chain screens display realistic Pakistan wheat/sugar data. Camera (QR scan) and GPS features require device permissions." |
+| Demo mobile number | `03000000001` (role: farmer) — or any of the 5 test accounts below |
+| Demo password | `qwe@123` |
+| Notes | "Sign in with the mobile number and password above, or tap 'Don't have an account? Sign Up' to create a new account with any 11-digit number starting with 0. All supply-chain screens (batch registration, transfers, quality tests, QR scanning, fraud alerts) work against a live backend — no demo/offline mode is used for this build. Camera (QR scan) and GPS features require device permissions." |
+
+Other test accounts (same password `qwe@123`), useful if the reviewer wants to see a
+different role's dashboard: `03000000002` (mill), `03000000003` (lab), `03000000004`
+(regulator), `03000000005` (consumer).
 
 ---
 
@@ -110,11 +114,12 @@ Select "No" for "Does your app use data for tracking?".
 ## 11. Release notes (v1.0.0)
 
 > First release of AgroChain.
-> • Blockchain farm-to-consumer traceability for wheat & sugar
+> • Farm-to-consumer traceability for wheat & sugar
 > • QR scanning with full product journey and GPS route map
 > • Quality reports, fraud alerts, and live KPI dashboard
 > • Offline-first capture with automatic sync
 > • English and Urdu support
+> • Sign in or create an account with just a mobile number — no email required
 
 ---
 

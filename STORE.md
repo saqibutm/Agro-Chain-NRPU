@@ -31,21 +31,22 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 
 ## 3. Short description (max 80 chars)
 
-> Farm-to-consumer traceability for wheat & sugar on blockchain. Scan. Verify. Trust.
+> Farm-to-consumer traceability for wheat & sugar. Scan. Verify. Trust.
 
-(78 chars)
+(69 chars)
 
 ---
 
 ## 4. Full description (max 4000 chars)
 
-> **AgroChain** brings complete farm-to-consumer traceability to Pakistan's wheat and sugarcane supply chains, powered by Hyperledger Fabric blockchain.
+> **AgroChain** brings complete farm-to-consumer traceability to Pakistan's wheat and sugarcane supply chains.
 >
-> Every stage — from a farmer's harvest, through collection centers, transporters, warehouses, mills, distributors, and retailers — is recorded on an immutable ledger. Consumers simply scan the QR code on a bag of flour or sugar to see the product's entire journey, quality test results, and farm of origin on a map.
+> Every stage — from a farmer's harvest, through collection centers, transporters, warehouses, mills, distributors, and retailers — is recorded in a secure, role-based traceability database with a full audit trail. Consumers simply scan the QR code on a bag of flour or sugar to see the product's entire journey, quality test results, and farm of origin on a map.
 >
 > **For supply chain participants**
+> • Sign in with just a mobile number — no email required
 > • Register wheat and sugarcane batches with one tap, with automatic GPS geotagging of the farm
-> • Transfer custody securely; every handover is geotagged and time-stamped on the blockchain
+> • Transfer custody securely; every handover is geotagged and time-stamped
 > • Record laboratory quality tests (moisture, protein, gluten, contamination) — labs only
 > • Live dashboard with KPIs: batches created, in transit, delivered, quality pass-rate
 > • Built-in fraud detection: weight-variance, extraction-ratio, duplicate-QR and quality-failure alerts
@@ -53,7 +54,7 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 > **For consumers**
 > • Scan any AgroChain QR code — no account needed
 > • See the full farm-to-shelf timeline and GPS route on a map
-> • View blockchain-verified quality and safety results
+> • View verified quality and safety results
 > • Report a quality issue directly from the app
 >
 > **Designed for Pakistan**
@@ -72,10 +73,10 @@ Declare the following based on what the app actually collects:
 |-----------|-----------|---------|---------|-------|
 | **Location (approximate & precise)** | Yes | No | App functionality (geotag harvests/transfers) | Used only when recording a batch/transfer |
 | **Photos / Camera** | No (camera used live, not stored) | No | App functionality (QR scanning) | Camera frames are not collected/stored |
-| Personal info (name, user ID) | Yes (if auth enabled) | No | Account management | Farmer/entity IDs entered by user |
+| Personal info (name, user ID) | Yes (if auth enabled) | No | Account management | Mobile number and entity/farmer/mill IDs entered by user |
 | App activity (in-app actions) | Yes | No | Analytics / app functionality | Supply-chain transactions |
 
-- **Encryption in transit:** Yes (HTTPS to backend + TLS to Fabric peers).
+- **Encryption in transit:** Yes (HTTPS to the Supabase backend).
 - **Data deletion:** Provide a contact/method for users to request deletion.
 - **Camera permission justification:** "Used to scan product QR codes for supply-chain verification." (matches `app.json`)
 - **Location permission justification:** "Used to geotag farm harvests and custody transfers." (matches `app.json`)
@@ -105,9 +106,9 @@ How to capture: run `eas build --profile preview` (APK) or `npx expo start` on a
 
 A public URL is mandatory because the app requests Location and Camera permissions.
 Host a page covering:
-- What data is collected (location, entity IDs, supply-chain records) and why
+- What data is collected (location, mobile number, supply-chain records) and why
 - That camera is used only for live QR scanning and frames are not stored
-- That data is written to a permissioned blockchain ledger
+- That data is stored in a secure, role-based traceability database
 - How users contact you to request data deletion
 - Contact email
 
@@ -137,11 +138,12 @@ For subsequent releases: bump `version` in `app.json` (EAS auto-increments `vers
 ## 10. Release notes (v1.0.0)
 
 > First release of AgroChain.
-> • Blockchain farm-to-consumer traceability for wheat & sugar
+> • Farm-to-consumer traceability for wheat & sugar
 > • QR scanning with full product journey and GPS route map
 > • Quality reports, fraud alerts, and live KPI dashboard
 > • Offline-first capture with automatic sync
 > • English and Urdu support
+> • Sign in or create an account with just a mobile number — no email required
 
 ---
 

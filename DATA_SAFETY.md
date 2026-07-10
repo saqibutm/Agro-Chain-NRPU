@@ -15,11 +15,14 @@ practices, (D) per-data-type details. Answers reflect what AgroChain actually do
 |----------|--------|
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** |
-| Do you provide a way for users to request that their data be deleted? | **Yes** (off-chain data; see note below) |
+| Do you provide a way for users to request that their data be deleted? | **Yes** (see note below) |
 
-> Deletion note: off-chain account/operational data can be deleted on request via the
-> contact email. On-chain ledger records are immutable; where feasible off-chain
-> identifiers are dissociated. State this in your privacy policy (already covered in `PRIVACY.md`).
+> Deletion note: account/operational data can be deleted on request via the contact
+> email. Supply-chain event records (transfers, quality tests, issue reports) aren't
+> self-service editable in the app to preserve the audit trail, but can be corrected or
+> removed on request where legitimately required; where full deletion isn't appropriate
+> we dissociate personal identifiers instead. State this in your privacy policy (already
+> covered in `PRIVACY.md`).
 
 ---
 
@@ -43,12 +46,13 @@ Mark **only** the following as collected. Everything else = **Not collected**.
 - Collected: **Yes** · Shared: **No**
 - Required or optional: **Required** (for signed-in supply-chain participants)
 - Purposes: **App functionality**, **Account management**
-- Note: entity/farmer/mill IDs and username entered by the user.
+- Note: mobile number (used to sign in, no email required) and entity/farmer/mill IDs
+  entered by the user.
 
 ### 4. App activity → Other in-app actions
 - Collected: **Yes** · Shared: **No**
 - Required or optional: **Required**
-- Purposes: **App functionality** (supply-chain transactions on the ledger)
+- Purposes: **App functionality** (supply-chain transactions in the traceability database)
 
 ### Explicitly NOT collected
 - Financial info · Health & fitness · Messages · Contacts · Calendar
@@ -66,8 +70,8 @@ Mark **only** the following as collected. Everything else = **Not collected**.
 
 | Question | Answer |
 |----------|--------|
-| Is data encrypted in transit? | **Yes** — HTTPS to the gateway; TLS between Fabric nodes |
-| Can users request data deletion? | **Yes** — via contact email (off-chain); on-chain is immutable |
+| Is data encrypted in transit? | **Yes** — HTTPS to the Supabase backend |
+| Can users request data deletion? | **Yes** — via contact email; see the deletion note in Part A |
 | Committed to Play Families Policy? | **No** (not a children's app) |
 | Independent security review? | **No** (declare Yes only if you have one) |
 

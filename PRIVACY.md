@@ -3,11 +3,11 @@
 **Last updated:** 7 June 2026
 
 AgroChain ("the App", "we", "us") provides farm-to-consumer traceability for wheat and
-sugarcane supply chains in Pakistan using a permissioned blockchain (Hyperledger Fabric).
-This policy explains what data we collect, why, and your rights. By using AgroChain you
-agree to this policy.
+sugarcane supply chains in Pakistan using a secure, role-based database. This policy
+explains what data we collect, why, and your rights. By using AgroChain you agree to
+this policy.
 
-> **Contact:** _<add your support email, e.g. support@agrochain.app>_
+> **Contact:** Email saqibutm@outlook.com or WhatsApp +92 300 1750077
 > **Data controller:** _<add your organization name and address>_
 
 ---
@@ -25,8 +25,8 @@ agree to this policy.
 ## 2. Data we collect
 
 ### a. Information you provide
-- **Account / entity identifiers** — username and entity/farmer/mill IDs you enter when
-  registering or signing in.
+- **Account / entity identifiers** — your mobile number (used to sign in, no email
+  required) and entity/farmer/mill IDs you enter when registering or signing in.
 - **Supply-chain records** — batch IDs, crop variety, quantity, dates, custody transfers,
   and (for laboratories) quality test results such as moisture, protein, gluten, and
   contamination indicators.
@@ -37,7 +37,8 @@ agree to this policy.
 - **Location (precise and/or approximate)** — captured **only at the moment** you record a
   harvest or a custody transfer, to geotag where that event occurred. The App does **not**
   track your location continuously or in the background.
-- **App activity** — the supply-chain actions you perform, needed to maintain the ledger.
+- **App activity** — the supply-chain actions you perform, needed to maintain the
+  traceability record.
 
 ### c. Camera
 - The camera is used **only** to scan product QR codes in real time. Camera images/frames
@@ -50,7 +51,7 @@ identifiers, and the App contains **no third-party advertising**.
 
 ## 3. How we use your data
 
-- To record and verify supply-chain events on the blockchain ledger.
+- To record and verify supply-chain events in the traceability database.
 - To display product traceability journeys, quality reports, and GPS routes.
 - To compute dashboard metrics and fraud/anomaly alerts (e.g. weight variance, quality
   failures).
@@ -60,15 +61,23 @@ We do **not** sell your personal data.
 
 ---
 
-## 4. Blockchain (important)
+## 4. Record integrity (important)
 
-AgroChain writes supply-chain records to a **permissioned blockchain ledger**. By design,
-ledger entries are **immutable** and **cannot be edited or deleted** once committed.
-Please avoid entering unnecessary personal information into supply-chain records. Identifiers
-stored on the ledger are limited to what is required for traceability.
+AgroChain writes supply-chain records to a secure database. Once submitted, custody
+transfer, quality test, and consumer issue records **cannot be edited or deleted through
+the App** — this preserves a reliable audit trail and is what makes AgroChain
+fraud-resistant. A batch's status does update automatically as it moves through the
+supply chain (e.g. picked up, delivered).
 
-Access to the ledger is restricted to authorized organizations on the network (e.g. farmers,
-mills, regulators, laboratories) under their respective permissions.
+This is an access-control restriction we enforce at the database level, not a
+cryptographic guarantee — unlike a blockchain, we (the data controller) retain the
+technical ability to correct or remove records where legitimately required, for example
+to fulfil a data-protection request (see §8). Please avoid entering unnecessary personal
+information into supply-chain records; identifiers are limited to what is required for
+traceability.
+
+Access to records is restricted to authorized accounts (e.g. farmers, mills, regulators,
+laboratories) under their respective roles.
 
 ---
 
@@ -90,15 +99,17 @@ We share data only:
   under confidentiality obligations.
 - Where **required by law** or to protect rights, safety, and security.
 
-Data is **encrypted in transit** (HTTPS to our servers and TLS between blockchain nodes).
+Data is **encrypted in transit** (HTTPS to our servers).
 
 ---
 
 ## 7. Data retention
 
-- **Off-chain account and operational data** is retained for as long as your account is
-  active or as needed to provide the service, then deleted or anonymized.
-- **On-chain records** are permanent and immutable by the nature of blockchain (see §4).
+- **Account data** is retained for as long as your account is active or as needed to
+  provide the service, then deleted or anonymized.
+- **Supply-chain event records** (custody transfers, quality tests, issue reports) are
+  retained as a permanent audit trail and are not editable or deletable through the App
+  (see §4), though we can action a legitimate deletion request as described in §8.
 
 ---
 
@@ -108,9 +119,11 @@ Data is **encrypted in transit** (HTTPS to our servers and TLS between blockchai
   your device settings. Revoking them disables the related features (QR scanning, geotagging)
   but you can still use the rest of the App.
 - **Access / correction / deletion:** You may request access to, correction of, or deletion
-  of your **off-chain** personal data by contacting us at the email above. Note that
-  **on-chain** records cannot be deleted; where feasible we will dissociate off-chain
-  identifiers.
+  of your personal data by contacting us using the details above. Supply-chain event
+  records are not self-service editable in the App (see §4), but we can correct or remove
+  them on request where legitimately required; where full deletion isn't appropriate (e.g.
+  it would break another party's audit trail) we will dissociate your personal
+  identifiers instead.
 - **Account closure:** Contact us to deactivate your account.
 
 ---
@@ -133,5 +146,6 @@ the "Last updated" date and, where appropriate, an in-app notice.
 
 For any privacy questions or data requests:
 
-- **Email:** _<add your support email>_
+- **Email:** saqibutm@outlook.com
+- **WhatsApp:** +92 300 1750077
 - **Address:** _<add your organization's postal address>_

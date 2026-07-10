@@ -9,7 +9,7 @@ const { width, height } = Dimensions.get("window");
 const FAQS_EN = [
     {
         q: "What is AgroChain?",
-        a: "AgroChain is a blockchain-based traceability platform for wheat and sugarcane supply chains in Pakistan. Every step from farm to consumer is recorded on a tamper-proof Hyperledger Fabric ledger."
+        a: "AgroChain is a traceability platform for wheat and sugarcane supply chains in Pakistan. Every step from farm to consumer — batch creation, custody transfers, and quality tests — is recorded in a secure, role-based database with a full audit trail."
     },
     {
         q: "How do I verify a product?",
@@ -17,19 +17,19 @@ const FAQS_EN = [
     },
     {
         q: "Can I use the app without an internet connection?",
-        a: "Yes. AgroChain works fully offline. Any records you create are saved locally and automatically synced to the blockchain when your connection is restored."
+        a: "Yes. AgroChain works fully offline. Any records you create are saved locally and automatically synced to the server when your connection is restored."
     },
     {
         q: "Who can record supply-chain events?",
         a: "Authorized participants — farmers, labs, mills, and regulators — can record events using their credentials. Consumers can verify products without creating an account."
     },
     {
-        q: "What data is stored on the blockchain?",
-        a: "Supply-chain events: batch creation, custody transfers, quality test results, and GPS coordinates. Personal information is kept to a minimum and only identifiers required for traceability are written to the ledger."
+        q: "What data is stored?",
+        a: "Supply-chain events: batch creation, custody transfers, quality test results, and GPS coordinates. Personal information is kept to a minimum and only identifiers required for traceability are recorded."
     },
     {
         q: "Can records be deleted or changed?",
-        a: "No. The blockchain ledger is immutable by design — records cannot be altered or deleted once committed. This is what makes AgroChain fraud-resistant."
+        a: "Once submitted, custody transfers, quality test results, and issue reports can't be edited or deleted — this keeps the audit trail reliable. A batch's status updates automatically as it moves through the supply chain (e.g. picked up, delivered). If something was entered incorrectly, contact support."
     },
     {
         q: "What do the Fraud Alerts mean?",
@@ -44,7 +44,7 @@ const FAQS_EN = [
 const FAQS_UR = [
     {
         q: "ایگروچین کیا ہے؟",
-        a: "ایگروچین پاکستان میں گندم اور گنے کی سپلائی چین کے لیے ایک بلاک چین پر مبنی ٹریس ایبلٹی پلیٹ فارم ہے۔ کھیت سے صارف تک ہر قدم ایک ناقابل تغیر ہائپر لیجر فیبرک لیجر پر ریکارڈ ہوتا ہے۔"
+        a: "ایگروچین پاکستان میں گندم اور گنے کی سپلائی چین کے لیے ایک ٹریس ایبلٹی پلیٹ فارم ہے۔ کھیت سے صارف تک ہر قدم — بیچ کی تخلیق، تحویل کی منتقلی، اور معیار کے ٹیسٹ — ایک محفوظ، کردار پر مبنی ڈیٹا بیس میں مکمل آڈٹ ٹریل کے ساتھ ریکارڈ ہوتا ہے۔"
     },
     {
         q: "میں کسی پروڈکٹ کی تصدیق کیسے کروں؟",
@@ -52,19 +52,19 @@ const FAQS_UR = [
     },
     {
         q: "کیا میں انٹرنیٹ کنیکشن کے بغیر ایپ استعمال کر سکتا ہوں؟",
-        a: "جی ہاں۔ ایگروچین بغیر آن لائن رہے مکمل طور پر کام کرتا ہے۔ آپ کے بنائے گئے ریکارڈ مقامی طور پر محفوظ ہو جاتے ہیں اور کنیکشن بحال ہونے پر خود بخود بلاک چین سے ہم آہنگ ہو جاتے ہیں۔"
+        a: "جی ہاں۔ ایگروچین بغیر آن لائن رہے مکمل طور پر کام کرتا ہے۔ آپ کے بنائے گئے ریکارڈ مقامی طور پر محفوظ ہو جاتے ہیں اور کنیکشن بحال ہونے پر خود بخود سرور سے ہم آہنگ ہو جاتے ہیں۔"
     },
     {
         q: "سپلائی چین کے واقعات کون ریکارڈ کر سکتا ہے؟",
         a: "مجاز شرکاء — کسان، لیبز، ملیں، اور ریگولیٹرز — اپنی اسناد سے واقعات ریکارڈ کر سکتے ہیں۔ صارفین بغیر اکاؤنٹ بنائے پروڈکٹ کی تصدیق کر سکتے ہیں۔"
     },
     {
-        q: "بلاک چین پر کیا ڈیٹا محفوظ ہوتا ہے؟",
+        q: "کیا ڈیٹا محفوظ ہوتا ہے؟",
         a: "سپلائی چین واقعات: بیچ کی تخلیق، تحویل کی منتقلی، معیار کے ٹیسٹ کے نتائج، اور جی پی ایس کوآرڈینیٹس۔"
     },
     {
         q: "کیا ریکارڈز حذف یا تبدیل کیے جا سکتے ہیں؟",
-        a: "نہیں۔ بلاک چین لیجر ڈیزائن کے لحاظ سے ناقابل تغیر ہے — ایک بار کمٹ ہونے کے بعد ریکارڈز کو تبدیل یا حذف نہیں کیا جا سکتا۔"
+        a: "ایک بار جمع کرانے کے بعد، تحویل کی منتقلی، معیار کے ٹیسٹ کے نتائج، اور مسئلے کی رپورٹس کو تبدیل یا حذف نہیں کیا جا سکتا — اس سے آڈٹ ٹریل قابلِ اعتماد رہتا ہے۔ بیچ کی حیثیت سپلائی چین میں آگے بڑھنے کے ساتھ خود بخود اپ ڈیٹ ہوتی ہے (مثلاً وصولی، ترسیل)۔ اگر کچھ غلط درج ہو گیا ہو تو سپورٹ سے رابطہ کریں۔"
     },
     {
         q: "دھوکہ دہی کی وارننگز کا کیا مطلب ہے؟",

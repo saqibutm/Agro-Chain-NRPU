@@ -1,7 +1,5 @@
-// Data layer — Supabase backend replacing Hyperledger Fabric REST gateway.
-// Function signatures are kept identical to the original so all screens work
-// unchanged. The offline SyncQueue calls dispatch() which maps Actions to
-// Supabase inserts.
+// Data layer — Supabase (Postgres) backend. The offline SyncQueue calls
+// dispatch() which maps Actions to Supabase inserts.
 import { supabase } from "./supabase";
 
 // ── Action registry ──────────────────────────────────────────────────────────

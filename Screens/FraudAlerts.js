@@ -14,7 +14,7 @@ import { evaluate, checkDuplicateQR, evaluateQualityReports, Severity } from "..
 const { width, height } = Dimensions.get("window");
 
 // Sample rule-engine inputs (Pakistan-specific batch IDs) — in production these
-// come from chaincode queries (TransportEvent, ProcessWheatBatch, ConsumerScan).
+// come from the wheat_batches/batch_transfers/quality_reports tables.
 const sampleRecords = [
     { batchID: "WBATCH-FSD-2025-0001", weightAtPickup: 5000, weightAtDelivery: 4760 },
     { batchID: "WBATCH-SWL-2025-0003", wheatInputKg: 1000, flourOutputKg: 920 },
@@ -47,7 +47,7 @@ const FraudAlerts = ({ navigation }) => {
         ...checkDuplicateQR(sampleScans),
     ];
 
-    // Live alerts derived from on-chain quality reports.
+    // Live alerts derived from quality reports in the traceability database.
     const loadQualityAlerts = useCallback(async () => {
         if (DEMO_MODE) { setQualityAlerts(evaluateQualityReports(getQualityReports())); return; }
 

@@ -85,7 +85,7 @@ export const translations = {
     pass: "Pass",
     fail: "Fail",
     save: "Save Report",
-    qualityRecorded: "Quality report recorded on the blockchain.",
+    qualityRecorded: "Quality report recorded.",
     fillRequired: "Report ID and Batch/Product ID are required.",
 
     // Sync
@@ -96,7 +96,7 @@ export const translations = {
     savedOffline: "Saved offline",
 
     // Consumer trust
-    verifiedOnBlockchain: "Verified on Blockchain",
+    verifiedOnBlockchain: "Verified Record",
     productJourney: "Product Journey",
     qualityReport: "Quality Report",
     reportIssue: "Report Issue",
@@ -116,7 +116,8 @@ export const translations = {
     // Settings
     settings: "Settings",
     language: "Language",
-    contactUs: "Contact Us",
+    contactUs: "Contact Us (Email)",
+    contactWhatsapp: "Contact Us (WhatsApp)",
     logout: "Logout",
     english: "English",
     urdu: "اردو",
@@ -139,8 +140,8 @@ export const translations = {
     // Validation / confirmation
     confirm: "Confirm",
     missingFields: "Missing fields",
-    farmerRegistered: "Farmer registered on the blockchain.",
-    millBatchReceived: "Batch transferred to mill on the blockchain.",
+    farmerRegistered: "Farmer registered.",
+    millBatchReceived: "Batch transferred to mill.",
     millConfirmed: "Mill ID recorded. Processing complete.",
     fillNumericFields: "At least one of Moisture, Protein, or Gluten is required.",
     offlineQueue: "No connection — your record was queued and will sync automatically.",
@@ -251,7 +252,7 @@ export const translations = {
     pass: "کامیاب",
     fail: "ناکام",
     save: "رپورٹ محفوظ کریں",
-    qualityRecorded: "معیار کی رپورٹ بلاک چین پر ریکارڈ ہو گئی۔",
+    qualityRecorded: "معیار کی رپورٹ ریکارڈ ہو گئی۔",
     fillRequired: "رپورٹ کی شناخت اور بیچ/پروڈکٹ شناخت ضروری ہیں۔",
 
     // Sync
@@ -262,7 +263,7 @@ export const translations = {
     savedOffline: "آف لائن محفوظ ہو گیا",
 
     // Consumer trust
-    verifiedOnBlockchain: "بلاک چین پر تصدیق شدہ",
+    verifiedOnBlockchain: "تصدیق شدہ ریکارڈ",
     productJourney: "پروڈکٹ کا سفر",
     qualityReport: "معیار کی رپورٹ",
     reportIssue: "مسئلہ رپورٹ کریں",
@@ -282,7 +283,8 @@ export const translations = {
     // Settings
     settings: "ترتیبات",
     language: "زبان",
-    contactUs: "ہم سے رابطہ کریں",
+    contactUs: "ہم سے رابطہ کریں (ای میل)",
+    contactWhatsapp: "ہم سے رابطہ کریں (واٹس ایپ)",
     logout: "لاگ آؤٹ",
     english: "English",
     urdu: "اردو",
@@ -305,8 +307,8 @@ export const translations = {
     // Validation / confirmation
     confirm: "تصدیق کریں",
     missingFields: "لازمی خانے",
-    farmerRegistered: "کسان بلاک چین پر ریکارڈ ہو گیا۔",
-    millBatchReceived: "بیچ بلاک چین پر مل کو منتقل ہو گیا۔",
+    farmerRegistered: "کسان ریکارڈ ہو گیا۔",
+    millBatchReceived: "بیچ مل کو منتقل ہو گیا۔",
     millConfirmed: "مل شناخت ریکارڈ ہو گئی۔ پروسیسنگ مکمل۔",
     fillNumericFields: "نمی، پروٹین، یا گلوٹین میں سے کم از کم ایک ضروری ہے۔",
     offlineQueue: "کنیکشن نہیں — آپ کا ریکارڈ محفوظ ہو گیا اور خود بخود ہم آہنگ ہو جائے گا۔",

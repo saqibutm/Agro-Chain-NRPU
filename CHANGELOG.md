@@ -73,9 +73,23 @@ in Pakistan.
 
 ## [Unreleased]
 
+### Changed
+- **Backend replaced:** the Hyperledger Fabric chaincode/gateway described in the 1.0.0
+  entry above has been replaced with a Supabase (Postgres) backend — see
+  `supabase/schema.sql` and `Services/api.js`. Traceability records are no longer stored
+  on a blockchain; see `PRIVACY.md` §4 for the current record-integrity model.
+- **Sign-in is now mobile-number-only** — no email or free-form username. Users sign in
+  or sign up with an 11-digit mobile number starting with 0 (`Screens/Account/SingIn.js`,
+  `SignUp.js`); internally this maps to a synthetic email address for Supabase Auth.
+- Writes now stamp `created_by`/`reported_by` with the authenticated user's ID
+  (`Services/api.js`), giving every record an audit trail.
+
 ### Added
+- **Sign Up screen** (`Screens/Account/SignUp.js`) — new users can create an account
+  directly from the Sign In screen.
 - **About page** (`Screens/About.js`) with an academic **Project Acknowledgment** card:
   HEC + UAF logo placeholders, project title, NRPU Project No. 15516, host institution,
   and HEC/NRPU funding statement. Linked from Settings; bilingual (EN/UR) titles.
+- WhatsApp added as a second Settings → Contact Us option, alongside email.
 
 _Planned: payment/settlement integration, voice input for low-literacy users, web regulator dashboard._

@@ -7,7 +7,7 @@
 Farm‑to‑consumer traceability for Pakistan's wheat & sugarcane supply chains.
 
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Web-2e7d32)]()
-[![Blockchain](https://img.shields.io/badge/blockchain-Hyperledger%20Fabric%20v2-1565c0)]()
+[![Backend](https://img.shields.io/badge/backend-Supabase%20(Postgres)-3ecf8e)]()
 [![App ID](https://img.shields.io/badge/app-com.agrochain.app-555)]()
 [![Funding](https://img.shields.io/badge/HEC%20NRPU-15516-c62828)]()
 
@@ -19,14 +19,14 @@ Farm‑to‑consumer traceability for Pakistan's wheat & sugarcane supply chains
 
 AgroChain records every stage of the wheat and sugarcane supply chains — from a farmer's
 harvest, through collection/procurement centers, transporters, warehouses, mills,
-distributors, and retailers — on a permissioned **Hyperledger Fabric** blockchain. Consumers
-scan a QR code on a bag of flour or sugar to view the product's complete, tamper‑evident
+distributors, and retailers — in a secure, role-based **Supabase (Postgres)** backend.
+Consumers scan a QR code on a bag of flour or sugar to view the product's complete
 journey, lab quality results, and farm of origin on a map.
 
 ## 🎯 Objectives
 
-1. Record every custody and processing event on an immutable ledger.
-2. Enforce role‑based authorization at the smart‑contract level.
+1. Record every custody and processing event with a reliable, non-editable audit trail.
+2. Enforce role‑based authorization via Supabase Auth and Postgres row-level security.
 3. Provide a mobile app for participants (capture) and consumers (verification).
 4. Geotag harvests and transfers for spatial traceability.
 5. Surface quality‑assurance and fraud‑detection signals to regulators.
@@ -34,7 +34,7 @@ journey, lab quality results, and farm of origin on a map.
 
 ## ✨ Features
 
-- 🔗 Farm‑to‑shelf traceability with on‑chain custody history
+- 🔗 Farm‑to‑shelf traceability with a full custody-history audit trail
 - 📱 Consumer QR verification (journey, quality, GPS route map)
 - 🧪 Lab quality reports (moisture, protein, gluten, contamination)
 - 🚨 Fraud/anomaly detection (weight variance, extraction ratio, duplicate QR, quality failure)
@@ -47,40 +47,44 @@ journey, lab quality results, and farm of origin on a map.
 
 ```mermaid
 flowchart LR
-    App[📱 React Native App] -->|HTTPS/JSON| GW[🌐 Node/Express Gateway]
-    GW -->|fabric-network gRPC| Fabric[(⛓️ Hyperledger Fabric + CouchDB)]
-    GW --> CA[Fabric CA + Wallet]
+    App[📱 React Native / Expo App] -->|HTTPS| SB[(🗄️ Supabase — Postgres + Auth + RLS)]
 ```
 
-Three tiers: **mobile client** → **REST gateway** → **Fabric network (CouchDB world state)**.
-Details: [`docs/System_Architecture.md`](docs/System_Architecture.md).
+Two tiers: **mobile client** → **Supabase** (Postgres database, Auth, and row-level
+security policies — no custom backend server to deploy or maintain).
+
+> **Note:** `docs/System_Architecture.md` and other files under `docs/` describe the
+> original Hyperledger Fabric design and have not yet been updated for the Supabase
+> backend — treat them as historical background, not current architecture.
 
 ## 🧰 Technologies Used
 
 | Layer | Tech |
 |-------|------|
 | Mobile | React Native 0.73, Expo SDK 50, React Navigation |
-| Gateway | Node.js, Express, `fabric-network`, `fabric-ca-client` |
-| Smart contract | Go, `fabric-contract-api-go` |
-| Ledger/State | Hyperledger Fabric v2, CouchDB |
+| Backend | Supabase (Postgres, Auth, Row-Level Security) via `@supabase/supabase-js` |
 | Mobile libs | expo-camera, expo-location, react-native-maps, AsyncStorage, NetInfo |
 
-## ⛓️ Hyperledger Fabric Components
+## 🗄️ Supabase Backend
 
-- **Orgs (5 + orderer):** FarmerOrg1, PunjabOrg3, MillOrg4, DealerOrg5, RetailerOrg6 + OrdererOrg
-- **Channel:** `supplychain-channel` · **Chaincode:** `supplychain` (Go, 23 transactions)
-- **MSP/CA:** X.509 identities, file‑system wallet, role‑based chaincode authorization
-- **State DB:** CouchDB with 4 rich‑query indexes
-- **Ordering:** Raft
-
-See [`docs/Hyperledger_Fabric_Architecture.md`](docs/Hyperledger_Fabric_Architecture.md) and
-[`docs/Chaincode_Documentation.md`](docs/Chaincode_Documentation.md).
+- **Tables:** `profiles`, `wheat_batches`, `batch_transfers`, `quality_reports`,
+  `consumer_issues` — see [`supabase/schema.sql`](supabase/schema.sql).
+- **Auth:** sign-in/sign-up by mobile number (11 digits, starting with 0) — no email or
+  free-form username. Internally mapped to a synthetic `<number>@agrochain.local` address
+  for Supabase Auth.
+- **Authorization:** Postgres row-level security (RLS) — public read on all tables,
+  authenticated write. `wheat_batches` also allows authenticated updates (status
+  progression); `batch_transfers`, `quality_reports`, and `consumer_issues` are
+  insert-only once created (see `PRIVACY.md` §4 for what this means for users).
+- **Legacy:** the `go/`, `org/`, and `configtx/` directories are leftover Hyperledger
+  Fabric chaincode/network config from before the Supabase migration and are not used by
+  the shipped app.
 
 ## 📱 Mobile App Overview (Android & iOS)
 
 A **single React Native / Expo codebase** runs on **Android**, **iOS**, and the **web**.
-Global providers for **i18n**, **Auth** (CA‑backed login + persisted session), and
-**offline‑first Sync** wrap a session‑gated navigator. Screens include the KPI dashboard,
+Global providers for **i18n**, **Auth** (Supabase-backed sign-in by mobile number +
+persisted session), and **offline‑first Sync** wrap a session‑gated navigator. Screens include the KPI dashboard,
 batch registration (GPS), QR scanner, consumer product journey with map route, lab quality
 dashboard, fraud alerts, and settings (language, about, logout).
 Details: [`docs/Mobile_Application_Documentation.md`](docs/Mobile_Application_Documentation.md).
@@ -104,7 +108,7 @@ Details: [`docs/Mobile_Application_Documentation.md`](docs/Mobile_Application_Do
 git clone <repo-url> agrochain && cd agrochain
 npm install
 npx expo install   # align native deps with Expo SDK 50
-# set app.json → expo.extra.apiBaseUrl
+# set app.json → expo.extra.supabaseUrl / expo.extra.supabaseAnonKey
 npx expo start     # then press: a = Android · i = iOS Simulator · w = web
 ```
 
@@ -123,11 +127,11 @@ Full guide: [`docs/Installation_Guide.md`](docs/Installation_Guide.md).
 
 ## 🚀 Deployment
 
-```bash
-# Gateway
-cd org && npm install && node enrollAdminOrg1.js && node serverOrg1.js
+The backend is Supabase — there is no gateway server to deploy. Run `supabase/schema.sql`
+(and optionally `supabase/seed.sql`) once in the Supabase SQL Editor for a new project,
+then ship the mobile app:
 
-# Mobile releases (EAS)
+```bash
 eas build --platform android --profile production   # AAB → Google Play
 eas build --platform ios --profile production       # IPA → Apple App Store
 eas submit --platform ios --profile production       # upload to App Store Connect
@@ -141,20 +145,14 @@ Full guide: [`docs/Deployment_Guide.md`](docs/Deployment_Guide.md) · Store step
 
 | Setting | Where | Example |
 |---------|-------|---------|
-| Mobile backend URL | `app.json` → `expo.extra.apiBaseUrl` | `https://api.your-domain` |
-| Default wallet user | `app.json` → `expo.extra.defaultUsername` | `appUser` |
-| Gateway port/host | `org/.env` (`PORT`, `HOST`) | `8081` / `0.0.0.0` |
-| CA / MSP / channel / chaincode | `org/.env` | see `org/.env.example` |
-| CA admin bootstrap creds | `org/.env` (`CA_ADMIN_ID`, `CA_ADMIN_SECRET`) | — |
-| Fabric connection profile | `org/connection-org1.json` (git‑ignored) | see `org/connection-org1.example.json` |
+| Supabase project URL | `app.json` → `expo.extra.supabaseUrl` | `https://xxxx.supabase.co` |
+| Supabase anon/publishable key | `app.json` → `expo.extra.supabaseAnonKey` | `sb_publishable_...` |
+| Default wallet user (read-only fallback) | `app.json` → `expo.extra.defaultUsername` | `appUser` |
+| Demo mode override | `app.json` → `expo.extra.demoMode` | omit to auto-detect |
 
-Copy the examples and fill in real values:
-```bash
-cp .env.example .env                 # optional (root build vars)
-cp org/.env.example org/.env         # gateway config + CA admin secret
-cp org/connection-org1.example.json org/connection-org1.json   # then paste real certs
-```
-**Never commit** `.env`, `org/connection-org1.json`, wallets, or keys — they are git‑ignored.
+The Supabase anon/publishable key is safe to ship in the client — it's restricted by
+row-level security, not a secret. **Never commit** a Supabase **service-role** key,
+`.env` files, or signing certificates — they are git‑ignored.
 
 ## 📸 Screenshots
 
@@ -234,10 +232,11 @@ AgroChain/
 ├── Services/              # api, SyncContext/SyncQueue, AuthContext, location, fraudDetection, config
 ├── i18n/                  # English + Urdu translations
 ├── Svgs/ · Images/ · assets/   # Icons and images
-├── go/                    # Hyperledger Fabric chaincode (supplychain.go) + CouchDB indexes
-├── org/                   # Node/Express gateway + CA enrollment (config via .env)
-├── configtx/              # Fabric channel/org configuration
-├── docs/                  # Full documentation + docs/reports/
+├── supabase/              # schema.sql + seed.sql for the Postgres backend
+├── go/                    # LEGACY: pre-migration Hyperledger Fabric chaincode (unused)
+├── org/                   # LEGACY: pre-migration Node/Express gateway + CA (unused)
+├── configtx/              # LEGACY: pre-migration Fabric channel/org config (unused)
+├── docs/                  # Documentation (architecture docs predate the Supabase migration)
 ├── app.json · eas.json    # Expo + EAS build config
 └── package.json
 ```
@@ -252,7 +251,9 @@ Contributions are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and our
 Full suite in [`docs/`](docs/): Project Overview, System & Fabric Architecture, Transaction
 Flow, Chaincode, Android App, API, Database, Deployment, Installation, User & Administrator
 Manuals, Security Overview, Troubleshooting, Code Review, and research reports in
-[`docs/reports/`](docs/reports/). Changelog: [`CHANGELOG.md`](CHANGELOG.md).
+[`docs/reports/`](docs/reports/). **Most of `docs/` predates the Supabase migration and
+still describes the Hyperledger Fabric design** — treat it as historical background, not
+a current reference, until it's updated. Changelog: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## 📄 License
 

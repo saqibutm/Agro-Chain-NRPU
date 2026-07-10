@@ -60,6 +60,14 @@ const Settings = ({ navigation }) => {
             >
                 <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("contactUs")}</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                style={styles.btn}
+                onPress={() => Linking.openURL("https://wa.me/923001750077").catch(() =>
+                    Alert.alert(t("contactWhatsapp"), "+92 300 1750077")
+                )}
+            >
+                <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("contactWhatsapp")}</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, { backgroundColor: "red", borderWidth: 0 }]} onPress={signOut}>
                 <Text style={{ color: "white", fontSize: FontSize.F19, fontWeight: "500" }}>{t("logout")}</Text>
             </TouchableOpacity>

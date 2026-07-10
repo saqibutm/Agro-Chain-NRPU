@@ -65,7 +65,7 @@ const ROLE_GREETING = {
     consumer:  "roleConsumer",
 };
 
-// Derive dashboard KPIs from on-chain batches/products/quality reports.
+// Derive dashboard KPIs from batches/products/quality reports.
 function computeKpis(batches, products, reports) {
 	const created = batches.length;
 	const inTransit = batches.filter((b) =>
