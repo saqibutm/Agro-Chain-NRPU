@@ -49,6 +49,17 @@ export const translations = {
     productionDate: "Production Date",
     addCrop: "Add Crop",
 
+    // Batch QR code
+    batchQrTitle: "Batch QR Code",
+    batchQrHint: "Print this QR code and attach it to the batch. It will be scanned at every step of the supply chain.",
+    batchQrLabel: "Scan to verify this batch",
+    printQr: "Print",
+    shareQr: "Share",
+    done: "Done",
+    locationUnavailable: "Location unavailable",
+    printShareError: "Could not complete this action. Please try again.",
+    sharingUnavailable: "Sharing isn't available on this device.",
+
     // Farmer / Mill forms
     addFarmer: "Add Farmer",
     farmerId: "Farmer ID",
@@ -228,6 +239,17 @@ export const translations = {
     batchNumber: "بیچ نمبر",
     productionDate: "پیداوار کی تاریخ",
     addCrop: "فصل شامل کریں",
+
+    // Batch QR code
+    batchQrTitle: "بیچ کا QR کوڈ",
+    batchQrHint: "یہ QR کوڈ پرنٹ کر کے بیچ پر لگائیں۔ اسے سپلائی چین کے ہر مرحلے پر اسکین کیا جائے گا۔",
+    batchQrLabel: "اس بیچ کی تصدیق کے لیے اسکین کریں",
+    printQr: "پرنٹ کریں",
+    shareQr: "شیئر کریں",
+    done: "مکمل",
+    locationUnavailable: "مقام دستیاب نہیں",
+    printShareError: "یہ عمل مکمل نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+    sharingUnavailable: "اس ڈیوائس پر شیئرنگ دستیاب نہیں ہے۔",
 
     // Farmer / Mill forms
     addFarmer: "کسان شامل کریں",

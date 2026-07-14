@@ -13,6 +13,7 @@ import AddCrop from '../Screens/Crop/Add';
 import CameraScreen from '../Screens/Camera';
 import MapScreen from '../Screens/MapScreen';
 import ProductDetail from '../Screens/ProductDetail';
+import BatchQRCode from '../Screens/Shared/BatchQRCode';
 import BottomTab from "./BottomTab";
 import CodeVerificationScreen from "../Screens/Account/CodeVerificationScreen";
 import SignUp from "../Screens/Account/SignUp";
@@ -60,6 +61,7 @@ export function MainStack() {
                     <Stack.Screen name="ValidMill" component={ValidMill} />
                     <Stack.Screen name="AddCrop" component={AddCrop} />
                     <Stack.Screen name="ValidCrop" component={ValidCrop} />
+                    <Stack.Screen name="BatchQRCode" component={BatchQRCode} />
                     <Stack.Screen name="CameraScreen" component={CameraScreen} />
                     <Stack.Screen name="ProductDetail" component={ProductDetail} />
                     <Stack.Screen name="MapScreen" component={MapScreen} />

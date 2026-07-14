@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Animated } from "react-native";
 import { Camera } from "expo-camera";
+import Backward from "../Abstracts/Backward";
 
 const QRScanner = ({ navigation }) => {
     const [hasPermission, setHasPermission] = useState(null);
@@ -35,11 +36,27 @@ const QRScanner = ({ navigation }) => {
         setScanned(false);
     };
 
+    const backBtn = (
+        <View style={styles.backBtn}>
+            <Backward color="white" onPress={() => navigation.goBack()} />
+        </View>
+    );
+
     if (hasPermission === null) {
-        return <Text>Requesting for camera permission</Text>;
+        return (
+            <View style={styles.messageContainer}>
+                {backBtn}
+                <Text>Requesting for camera permission</Text>
+            </View>
+        );
     }
     if (hasPermission === false) {
-        return <Text>No access to camera</Text>;
+        return (
+            <View style={styles.messageContainer}>
+                {backBtn}
+                <Text>No access to camera</Text>
+            </View>
+        );
     }
 
     return (
@@ -66,6 +83,7 @@ const QRScanner = ({ navigation }) => {
                     },]}
                 />
             </View>
+            {backBtn}
         </View>
     );
 }
@@ -76,10 +94,24 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         justifyContent: "center",
     },
+    messageContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     innerContainer: {
         flex: 0.5,
         position: "relative",
         overflow: "hidden",
+    },
+    backBtn: {
+        position: "absolute",
+        top: 50,
+        left: 20,
+        zIndex: 10,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        borderRadius: 20,
+        padding: 8,
     },
     line: {
         position: "absolute",

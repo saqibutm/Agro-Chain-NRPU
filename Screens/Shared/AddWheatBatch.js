@@ -82,10 +82,19 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 					? `${t("offlineQueue")}\n(${error})`
 					: t("offlineQueue")
 			);
-		} else {
-			Alert.alert("Success", t("farmerRegistered"));
 		}
-		navigation.navigate(validateScreen);
+		// The batch ID is chosen client-side, so the printable QR code doesn't
+		// need to wait for sync — show it next either way, then let the farmer
+		// continue into the existing validate-and-transfer flow when ready.
+		navigation.navigate("BatchQRCode", {
+			wheatBatchID: payload.wheatBatchID,
+			variety: payload.variety,
+			quantity: payload.quantity,
+			harvestDate: payload.harvestDate,
+			latitude: payload.latitude,
+			longitude: payload.longitude,
+			nextScreen: validateScreen,
+		});
 	};
 
 	return (
