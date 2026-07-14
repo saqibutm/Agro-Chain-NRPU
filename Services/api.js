@@ -9,6 +9,7 @@ export const Actions = {
   REPORT_CONSUMER_ISSUE:"REPORT_CONSUMER_ISSUE",
   RECORD_QUALITY_TEST:  "RECORD_QUALITY_TEST",
   CREATE_MILL_LOCATION: "CREATE_MILL_LOCATION",
+  SEND_SAMPLE_TO_LAB:   "SEND_SAMPLE_TO_LAB",
 };
 
 // Current authenticated user's ID, read from the local session (no network
@@ -55,6 +56,7 @@ export async function dispatch(action, payload) {
       const { error } = await supabase.from("wheat_batches").insert({
         wheat_batch_id: payload.wheatBatchID,
         entity_id:      payload.entityID,
+        commodity:      payload.commodity || "wheat",
         variety:        payload.variety  || null,
         quantity:       payload.quantity || 0,
         harvest_date:   payload.harvestDate || null,
@@ -77,6 +79,28 @@ export async function dispatch(action, payload) {
         longitude:payload.longitude|| null,
       });
       if (error) throw _dispatchError(error);
+      return { success: true };
+    }
+
+    case Actions.SEND_SAMPLE_TO_LAB: {
+      const { error: sErr } = await supabase.from("sample_transfers").insert({
+        sample_id:       payload.sampleID,
+        wheat_batch_id:  payload.wheatBatchID,
+        from_mill_id:    payload.fromMillID,
+        to_lab_username: payload.toLabUsername,
+        quantity:        payload.quantity || 0,
+        sent_date:       payload.sentDate || null,
+        status:          "Sent",
+        created_by:      createdBy,
+      });
+      if (sErr) throw _dispatchError(sErr);
+      // The batch is now (at least partly) with a lab for testing — error is
+      // non-fatal; the sample transfer itself is already recorded.
+      const { error: uErr } = await supabase
+        .from("wheat_batches")
+        .update({ status: "Processing" })
+        .eq("wheat_batch_id", payload.wheatBatchID);
+      if (uErr) console.warn("batch status update failed:", uErr.message);
       return { success: true };
     }
 
@@ -115,9 +139,20 @@ export async function dispatch(action, payload) {
         result:     payload.result || "Pass",
         grade:      payload.grade  || "A",
         cert_hash:  payload.certHash || null,
+        sample_id:  payload.sampleID || null,
         created_by: createdBy,
       });
       if (error) throw _dispatchError(error);
+      // Tied to a formal sample transfer (from the LabDashboard pending-samples
+      // inbox, not a free-typed subject ID) — move it out of the pending list.
+      // Non-fatal: the quality report itself is already recorded.
+      if (payload.sampleID) {
+        const { error: sErr } = await supabase
+          .from("sample_transfers")
+          .update({ status: "Tested" })
+          .eq("sample_id", payload.sampleID);
+        if (sErr) console.warn("sample status update failed:", sErr.message);
+      }
       return { success: true };
     }
 
@@ -188,6 +223,42 @@ export async function deleteMillLocation(id) {
   if (error) throw new Error(error.message);
 }
 
+// Used by Screens/Mill/SendSample.js to pick a destination lab by their
+// registered username instead of free-typing it (and risking a typo that
+// silently misroutes the sample to nobody's inbox).
+export async function queryLabDirectory() {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("role", "lab")
+    .order("username", { ascending: true });
+  if (error) throw new Error(error.message);
+  return { labs: data.map((p) => p.username) };
+}
+
+// Used by Screens/LabDashboard.js — samples sent to this lab that haven't
+// been tested yet, i.e. the lab's "pending samples" inbox.
+export async function queryPendingSamples(username) {
+  const { data, error } = await supabase
+    .from("sample_transfers")
+    .select("*, wheat_batches(variety, quantity)")
+    .eq("to_lab_username", username)
+    .eq("status", "Sent")
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return {
+    samples: data.map((s) => ({
+      sampleID:     s.sample_id,
+      wheatBatchID: s.wheat_batch_id,
+      fromMillID:   s.from_mill_id,
+      quantity:     s.quantity,
+      sentDate:     s.sent_date,
+      variety:      s.wheat_batches?.variety || null,
+      batchQuantity:s.wheat_batches?.quantity ?? null,
+    })),
+  };
+}
+
 export async function queryWheatBatch(username, wheatBatchID) {
   const { data, error } = await supabase
     .from("wheat_batches")
@@ -231,6 +302,7 @@ export async function queryProduct(username, productID) {
       ..._mapProduct({ ...batch, batch_transfers: transfers }),
       quality: reports.length > 0 ? {
         result:     reports[0].result,
+        grade:      reports[0].grade,
         moisture:   reports[0].moisture,
         protein:    reports[0].protein,
         gluten:     reports[0].gluten,
@@ -309,6 +381,7 @@ function _mapBatch(b) {
     productID:      b.wheat_batch_id,
     wheatBatchID:   b.wheat_batch_id,
     entityID:       b.entity_id,
+    commodity:      b.commodity || "wheat",
     variety:        b.variety,
     quantity:       b.quantity,
     harvestDate:    b.harvest_date,
@@ -324,17 +397,19 @@ function _mapBatch(b) {
 function _mapProduct(b) {
   const transfers = b.batch_transfers || [];
   const journey = transfers.map((t, i) => ({
-    stage:  i === 0 ? "Farm" : "Transfer",
-    entity: t.to_entity_id,
-    date:   t.transfer_date || t.created_at?.split("T")[0],
+    stage:    i === 0 ? "Farm" : "Transfer",
+    entity:   t.to_entity_id,
+    location: t.location || null,
+    date:     t.transfer_date || t.created_at?.split("T")[0],
   }));
   const geoPoints = b.latitude
     ? [{ lat: b.latitude, lng: b.longitude }]
     : [];
+  const productType = b.commodity === "sugarcane" ? "Sugarcane" : "Wheat";
   return {
     ..._mapBatch(b),
-    productName:  `${b.variety || "Wheat"} — ${b.wheat_batch_id}`,
-    productType:  "Wheat",
+    productName:  `${b.variety || productType} — ${b.wheat_batch_id}`,
+    productType,
     farmOrigin:   { farmer: b.entity_id, district: "", province: "Punjab" },
     currentStage: b.status,
     journey,

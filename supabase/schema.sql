@@ -39,11 +39,16 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- ── Wheat batches ─────────────────────────────────────────────────────────────
--- Corresponds to CreateWheatBatch chaincode transaction.
+-- Corresponds to CreateWheatBatch chaincode transaction. Table/column names
+-- predate commodity: this same table holds both wheat and sugarcane batches,
+-- distinguished by the commodity column below (added after "variety" turned
+-- out to be the only field telling them apart — a free-text farmer-typed
+-- variety name, not a real crop-type selector).
 create table if not exists public.wheat_batches (
   id             uuid primary key default gen_random_uuid(),
   wheat_batch_id text unique not null,
   entity_id      text not null,
+  commodity      text not null default 'wheat' check (commodity in ('wheat','sugarcane')),
   variety        text,
   quantity       numeric default 0,
   harvest_date   date,
@@ -55,6 +60,11 @@ create table if not exists public.wheat_batches (
   created_by     uuid references auth.users(id),
   created_at     timestamptz default now()
 );
+
+-- Re-running this file against a project created before commodity existed.
+alter table public.wheat_batches add column if not exists commodity text not null default 'wheat';
+alter table public.wheat_batches drop constraint if exists wheat_batches_commodity_check;
+alter table public.wheat_batches add constraint wheat_batches_commodity_check check (commodity in ('wheat','sugarcane'));
 
 -- ── Batch transfers ───────────────────────────────────────────────────────────
 -- Corresponds to SendWheatBatch chaincode transaction.
@@ -121,6 +131,43 @@ create table if not exists public.mills (
   unique (owner_id, name)
 );
 
+-- ── Sample transfers ──────────────────────────────────────────────────────────
+-- A mill pulls a small sample from a batch and sends it to a lab for quality
+-- testing — distinct from the bulk batch_transfers handoff (a sample is a
+-- fraction of the batch's quantity, and the rest stays at the mill for
+-- processing). This is what turns "any lab can test any ID at any time" into
+-- a real chain of custody: Screens/LabDashboard.js only offers samples where
+-- to_lab_username matches the signed-in lab, and moves them out of that
+-- pending list once tested (see sample_id below).
+create table if not exists public.sample_transfers (
+  id              uuid primary key default gen_random_uuid(),
+  sample_id       text unique not null,
+  wheat_batch_id  text not null references public.wheat_batches(wheat_batch_id),
+  from_mill_id    text not null,
+  to_lab_username text not null,
+  -- Grams, not kg — a lab sample is a small pinch pulled from a much larger
+  -- batch, capped at 1000g (1kg) so "sample" can't smuggle in a bulk
+  -- quantity. Screens/Mill/SendSample.js enforces the same cap client-side;
+  -- this is the server-side backstop. See Services/units.js.
+  quantity        numeric default 0 check (quantity >= 0 and quantity <= 1000),
+  sent_date       date,
+  status          text not null default 'Sent'
+    check (status in ('Sent','Tested')),
+  created_by      uuid references auth.users(id),
+  created_at      timestamptz default now()
+);
+
+-- Re-running this file against a project created before the cap existed.
+alter table public.sample_transfers drop constraint if exists sample_transfers_quantity_check;
+alter table public.sample_transfers add constraint sample_transfers_quantity_check check (quantity >= 0 and quantity <= 1000);
+
+-- Links a quality report back to the specific sample it was tested from, so
+-- the sample_transfers row can flip to 'Tested'. Nullable + deferred to here
+-- (rather than inline on the quality_reports table above) because it can't
+-- reference sample_transfers before that table exists — and on a project
+-- that already has quality_reports, this alter is what actually adds it.
+alter table public.quality_reports add column if not exists sample_id text references public.sample_transfers(sample_id);
+
 -- ── Row-level security ────────────────────────────────────────────────────────
 -- For a research demo: allow anon read + authenticated write.
 -- Tighten per-role in production.
@@ -130,6 +177,7 @@ alter table public.batch_transfers enable row level security;
 alter table public.quality_reports enable row level security;
 alter table public.consumer_issues enable row level security;
 alter table public.mills          enable row level security;
+alter table public.sample_transfers enable row level security;
 
 -- Public read
 create policy "public read profiles"        on public.profiles        for select using (true);
@@ -138,6 +186,7 @@ create policy "public read batch_transfers" on public.batch_transfers  for selec
 create policy "public read quality_reports" on public.quality_reports  for select using (true);
 create policy "public read consumer_issues" on public.consumer_issues  for select using (true);
 create policy "public read mills"           on public.mills           for select using (true);
+create policy "public read sample_transfers" on public.sample_transfers for select using (true);
 
 -- Authenticated write
 create policy "auth insert wheat_batches"   on public.wheat_batches   for insert with check (auth.role() = 'authenticated');
@@ -145,6 +194,8 @@ create policy "auth update wheat_batches"   on public.wheat_batches   for update
 create policy "auth insert batch_transfers" on public.batch_transfers  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert quality_reports" on public.quality_reports  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert consumer_issues" on public.consumer_issues  for insert with check (auth.role() = 'authenticated');
+create policy "auth insert sample_transfers" on public.sample_transfers for insert with check (auth.role() = 'authenticated');
+create policy "auth update sample_transfers" on public.sample_transfers for update using  (auth.role() = 'authenticated');
 
 -- Mills: only the registering operator can add/remove their own locations
 -- (unlike the tables above, this one has a real owner, so it isn't just

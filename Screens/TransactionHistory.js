@@ -50,7 +50,7 @@ const TransactionHistory = ({ navigation }) => {
                     entityID:    b.entityID || "—",
                     district:    "—",
                     date:        b.harvestDate || b.productionDate || "—",
-                    cropType:    b.variety || "Wheat",
+                    cropType:    b.commodity === "sugarcane" ? t("sugarcane") : t("wheat"),
                     status:      b.status || "Created",
                 }));
             }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, Dimensions, Switch, Platform, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, ScrollView, StyleSheet, Dimensions, Switch, Platform, TouchableOpacity, ActivityIndicator } from "react-native";
 import Alert from "../Abstracts/Alert";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Container from "../Abstracts/Container";
@@ -7,34 +7,16 @@ import Input from "../Abstracts/TextInput";
 import Button from "../Abstracts/Button";
 import Backward from "../Abstracts/Backward";
 import SyncStatusBar from "../Abstracts/SyncStatusBar";
+import Segmented from "../Abstracts/Segmented";
 import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
 import { useAuth } from "../Services/AuthContext";
-import { Actions } from "../Services/api";
-import { DEFAULT_USERNAME } from "../Services/config";
+import { Actions, queryPendingSamples } from "../Services/api";
+import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 const { width, height } = Dimensions.get("window");
 
 const GRADES = ["A", "B", "C"];
-
-// Segmented option selector (used for Grade and Result).
-const Segmented = ({ options, value, onChange, activeColor = "green" }) => (
-	<View style={styles.segment}>
-		{options.map((opt) => {
-			const active = value === opt.value;
-			return (
-				<TouchableOpacity
-					key={opt.value}
-					activeOpacity={0.8}
-					onPress={() => onChange(opt.value)}
-					style={[styles.segmentBtn, active && { backgroundColor: opt.color || activeColor }]}
-				>
-					<Text style={[styles.segmentText, active && styles.segmentTextActive]}>{opt.label}</Text>
-				</TouchableOpacity>
-			);
-		})}
-	</View>
-);
 
 const LabDashboard = ({ navigation, route }) => {
 	const { t } = useI18n();
@@ -59,12 +41,43 @@ const LabDashboard = ({ navigation, route }) => {
 	const [datePickerVisible, setDatePickerVisible] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
 
+	// Samples a mill has sent to this lab and not yet tested — see
+	// supabase/schema.sql's sample_transfers table. Picking one below pins
+	// selectedSampleID so handleSubmit can flip it to "Tested" on save,
+	// instead of the old "type any ID, no gatekeeping" behavior (still
+	// available further down for ad-hoc testing not tied to a formal sample).
+	const [pendingSamples, setPendingSamples] = useState([]);
+	const [loadingSamples, setLoadingSamples] = useState(!DEMO_MODE);
+	const [selectedSampleID, setSelectedSampleID] = useState(null);
+
+	const loadPendingSamples = useCallback(async () => {
+		if (DEMO_MODE) return;
+		setLoadingSamples(true);
+		try {
+			const { samples } = await queryPendingSamples(username);
+			setPendingSamples(samples);
+		} catch {
+			// Non-fatal — manual entry below still works.
+		} finally {
+			setLoadingSamples(false);
+		}
+	}, [username]);
+
+	useEffect(() => { loadPendingSamples(); }, [loadPendingSamples]);
+
 	const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+	const selectSample = (sample) => {
+		setSelectedSampleID(sample.sampleID);
+		set("subjectID", sample.wheatBatchID);
+	};
 
 	// Filled in when returning from QRScanner (see the "Scan QR Code" button
 	// below) — QRScanner navigates back here with { scannedSubjectID }.
+	// Scanning is treated as ad-hoc entry, so it clears any selected sample.
 	useEffect(() => {
 		if (route?.params?.scannedSubjectID) {
+			setSelectedSampleID(null);
 			set("subjectID", route.params.scannedSubjectID);
 		}
 	}, [route?.params?.scannedSubjectID]);
@@ -99,6 +112,7 @@ const LabDashboard = ({ navigation, route }) => {
 			result: form.result,
 			grade: form.grade,
 			certHash: "",
+			sampleID: selectedSampleID,
 		};
 
 		const { mode, error } = await submit(Actions.RECORD_QUALITY_TEST, payload);
@@ -110,6 +124,12 @@ const LabDashboard = ({ navigation, route }) => {
 			Alert.alert(t("recordQualityTest"), error);
 			return;
 		}
+		if (selectedSampleID) {
+			// Optimistic: drop it from the pending list now — a background
+			// reload would also catch this once the write actually lands, but
+			// that could be a while if it was queued offline.
+			setPendingSamples((s) => s.filter((x) => x.sampleID !== selectedSampleID));
+		}
 		if (mode === "queued") {
 			Alert.alert(
 				t("savedOffline"),
@@ -118,7 +138,11 @@ const LabDashboard = ({ navigation, route }) => {
 		} else {
 			Alert.alert(t("recordQualityTest"), t("qualityRecorded"));
 		}
-		navigation.goBack();
+		// Refreshed label reflecting this test result — same QR/batch ID as
+		// always, updated grade/result. See BatchQRCode.js. Gracefully shows
+		// just the QR if subjectID isn't an actual wheat_batches row (e.g. an
+		// ad-hoc consumer-reported ID).
+		navigation.navigate("BatchQRCode", { wheatBatchID: form.subjectID, nextScreen: null });
 	};
 
 	const inputProps = {
@@ -141,10 +165,44 @@ const LabDashboard = ({ navigation, route }) => {
 				contentContainerStyle={{ alignItems: "center", paddingHorizontal: width * 0.06, paddingBottom: height * 0.05 }}
 				showsVerticalScrollIndicator={false}
 			>
+				<Text style={styles.subtitle}>{t("pendingSamples")}</Text>
+				{loadingSamples ? (
+					<ActivityIndicator color="green" style={{ marginBottom: 12 }} />
+				) : pendingSamples.length === 0 ? (
+					<Text style={styles.empty}>{t("noPendingSamples")}</Text>
+				) : (
+					<View style={{ width: width * 0.86, marginBottom: height * 0.02 }}>
+						{pendingSamples.map((sample) => {
+							const active = selectedSampleID === sample.sampleID;
+							return (
+								<TouchableOpacity
+									key={sample.sampleID}
+									style={[styles.sampleRow, active && styles.sampleRowActive]}
+									onPress={() => selectSample(sample)}
+								>
+									<View style={{ flex: 1 }}>
+										<Text style={styles.sampleId}>{sample.sampleID}</Text>
+										<Text style={styles.sampleSub}>
+											{t("batchNumber")}: {sample.wheatBatchID}{sample.variety ? ` · ${sample.variety}` : ""}
+										</Text>
+										<Text style={styles.sampleSub}>{t("from")}: {sample.fromMillID}</Text>
+									</View>
+									{active && <Text style={styles.sampleCheck}>✓</Text>}
+								</TouchableOpacity>
+							);
+						})}
+					</View>
+				)}
+
 				<Text style={styles.subtitle}>{t("recordQualityTest")}</Text>
 
 				<Input {...inputProps} value={form.reportID} setValue={(e) => set("reportID", e)} placeholder={t("reportId")} />
-				<Input {...inputProps} value={form.subjectID} setValue={(e) => set("subjectID", e)} placeholder={t("subjectId")} />
+				<Input
+					{...inputProps}
+					value={form.subjectID}
+					setValue={(e) => { setSelectedSampleID(null); set("subjectID", e); }}
+					placeholder={t("subjectId")}
+				/>
 				<Button
 					text={t("scanQrCode")}
 					onPress={() => navigation.navigate("QRScanner", { returnScreen: "LabDashboard", returnParamKey: "scannedSubjectID" })}
@@ -202,6 +260,7 @@ const LabDashboard = ({ navigation, route }) => {
 					options={GRADES.map((g) => ({ value: g, label: g }))}
 					value={form.grade}
 					onChange={(v) => set("grade", v)}
+					width={width * 0.86}
 				/>
 
 				{/* Result */}
@@ -213,6 +272,7 @@ const LabDashboard = ({ navigation, route }) => {
 					]}
 					value={form.result}
 					onChange={(v) => set("result", v)}
+					width={width * 0.86}
 				/>
 
 				<Button
@@ -235,19 +295,22 @@ const styles = StyleSheet.create({
 	},
 	headText: { fontSize: FontSize.F24, fontWeight: "bold", textAlign: "center", flex: 1 },
 	subtitle: { fontSize: FontSize.F18, color: "green", fontWeight: "600", marginBottom: height * 0.015, alignSelf: "flex-start" },
+	empty: { fontSize: FontSize.F14, color: "#888", marginBottom: height * 0.02, alignSelf: "flex-start" },
+	sampleRow: {
+		flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+		paddingVertical: 10, paddingHorizontal: 14, marginBottom: 8,
+		backgroundColor: "#f7faf7", borderRadius: 10, borderWidth: 1, borderColor: "#dCe8dC",
+	},
+	sampleRowActive: { borderColor: "green", borderWidth: 2, backgroundColor: "#eef5ee" },
+	sampleId: { fontSize: FontSize.F15, fontWeight: "700", color: "#1b5e20" },
+	sampleSub: { fontSize: FontSize.F12, color: "#666", marginTop: 2 },
+	sampleCheck: { fontSize: FontSize.F20, color: "green", fontWeight: "800", marginLeft: 8 },
 	switchRow: {
 		flexDirection: "row", alignItems: "center", justifyContent: "space-between",
 		width: width * 0.86, marginVertical: height * 0.008,
 	},
 	switchLabel: { fontSize: FontSize.F16, color: "#333" },
 	fieldLabel: { fontSize: FontSize.F16, fontWeight: "600", color: "#444", alignSelf: "flex-start", marginTop: height * 0.018, marginBottom: 6 },
-	segment: { flexDirection: "row", width: width * 0.86, gap: 8 },
-	segmentBtn: {
-		flex: 1, borderWidth: 1.5, borderColor: "green", borderRadius: 8,
-		paddingVertical: 10, alignItems: "center",
-	},
-	segmentText: { fontSize: FontSize.F16, color: "green", fontWeight: "600" },
-	segmentTextActive: { color: "white" },
 });
 
 export default LabDashboard;

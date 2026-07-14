@@ -6,6 +6,7 @@ import ValidFarmer from '../Screens/Farmer/Valid';
 import AddMill from '../Screens/Mill/Add';
 import ValidMill from '../Screens/Mill/Valid';
 import ManageMills from '../Screens/Mill/ManageMills';
+import SendSample from '../Screens/Mill/SendSample';
 import SignIn from '../Screens/Account/SingIn';
 import ForgetPassword from '../Screens/Account/ForgetPassword';
 import CreateNewPassword from '../Screens/Account/CreateNewPassword';
@@ -61,6 +62,7 @@ export function MainStack() {
                     <Stack.Screen name="AddMill" component={AddMill} />
                     <Stack.Screen name="ValidMill" component={ValidMill} />
                     <Stack.Screen name="ManageMills" component={ManageMills} />
+                    <Stack.Screen name="SendSample" component={SendSample} />
                     <Stack.Screen name="AddCrop" component={AddCrop} />
                     <Stack.Screen name="ValidCrop" component={ValidCrop} />
                     <Stack.Screen name="BatchQRCode" component={BatchQRCode} />

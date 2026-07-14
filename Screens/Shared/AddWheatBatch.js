@@ -7,12 +7,14 @@ import Button from "../../Abstracts/Button";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import SyncStatusBar from "../../Abstracts/SyncStatusBar";
 import Backward from "../../Abstracts/Backward";
+import Segmented from "../../Abstracts/Segmented";
 import { useSync } from "../../Services/SyncContext";
 import { Actions } from "../../Services/api";
 import { DEFAULT_USERNAME } from "../../Services/config";
 import { useI18n } from "../../i18n/I18nContext";
 import { useAuth } from "../../Services/AuthContext";
 import { getCurrentLocation } from "../../Services/location";
+import { maundToKg } from "../../Services/units";
 import { FontSize } from "../../Abstracts/Theme";
 const { width, height } = Dimensions.get("window");
 
@@ -28,6 +30,7 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 	const [form, setForm] = useState({
 		farmer_id: "",
 		batch_number: "",
+		commodity: "wheat",
 		variety: "",
 		quantity: "",
 		date_harvested: ""
@@ -59,8 +62,12 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 			username,
 			entityID: form.farmer_id,
 			wheatBatchID: form.batch_number,
+			commodity: form.commodity,
 			variety: form.variety.trim() || "Unspecified",
-			quantity: parseFloat(form.quantity) || 0,
+			// The farmer enters maund (the unit they actually weigh in); every
+			// stored/downstream quantity — fraud-detection weight variance,
+			// KPIs, the printed label — stays in kg. See Services/units.js.
+			quantity: maundToKg(parseFloat(form.quantity) || 0),
 			harvestDate: form.date_harvested,
 			qrCode: form.batch_number,
 			latitude: latitude ?? 0,
@@ -88,6 +95,7 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 		// continue into the existing validate-and-transfer flow when ready.
 		navigation.navigate("BatchQRCode", {
 			wheatBatchID: payload.wheatBatchID,
+			commodity: payload.commodity,
 			variety: payload.variety,
 			quantity: payload.quantity,
 			harvestDate: payload.harvestDate,
@@ -128,6 +136,16 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 					borderRadius={0}
 					borderWidth={0}
 				/>
+				<Text style={styles.fieldLabel}>{t("cropType")}</Text>
+				<Segmented
+					options={[
+						{ value: "wheat", label: t("wheat") },
+						{ value: "sugarcane", label: t("sugarcane") },
+					]}
+					value={form.commodity}
+					onChange={(v) => handleChange(v, "commodity")}
+					width={width * 0.86}
+				/>
 				<Input
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
 					value={form.variety}
@@ -142,7 +160,7 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
 					value={form.quantity}
 					setValue={(e) => handleChange(e, "quantity")}
-					placeholder={`${t("quantity")} (kg)`}
+					placeholder={`${t("quantity")} (${t("maund")})`}
 					width={width * 0.86}
 					fontSize={FontSize.F20}
 					borderRadius={0}
@@ -197,7 +215,15 @@ const styles = StyleSheet.create({
 		marginTop: height * 0.04,
 		textAlign: "center",
 		flex: 1,
-	}
+	},
+	fieldLabel: {
+		fontSize: FontSize.F16,
+		fontWeight: "600",
+		color: "#444",
+		alignSelf: "flex-start",
+		marginTop: height * 0.012,
+		marginBottom: 6,
+	},
 });
 
 export default AddWheatBatch;

@@ -10,6 +10,7 @@ import Backward from "../../Abstracts/Backward";
 import { useSync } from "../../Services/SyncContext";
 import { Actions, queryMyMills } from "../../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../../Services/config";
+import { maundToKg } from "../../Services/units";
 import { useI18n } from "../../i18n/I18nContext";
 import { useAuth } from "../../Services/AuthContext";
 import { FontSize } from "../../Abstracts/Theme";
@@ -91,7 +92,10 @@ const AddMill = ({ route, navigation }) => {
 			fromEntityID,
 			toEntityID: form.mill_name,
 			wheatBatchID: form.batch_number,
-			quantity: parseFloat(form.quantity_received) || 0,
+			// Still the same raw grain the farmer weighed in maund, just now
+			// being weighed in by the mill — stored in kg like every other
+			// quantity. See Services/units.js.
+			quantity: maundToKg(parseFloat(form.quantity_received) || 0),
 			transferDate: form.product_date,
 			location: form.location,
 		};
@@ -112,7 +116,9 @@ const AddMill = ({ route, navigation }) => {
 		} else {
 			Alert.alert("Success", t("millBatchReceived"));
 		}
-		navigation.navigate("ValidMill");
+		// Refreshed label reflecting this transfer — same QR/batch ID as
+		// always, updated "currently with" + status. See BatchQRCode.js.
+		navigation.navigate("BatchQRCode", { wheatBatchID: form.batch_number, nextScreen: "ValidMill" });
 	};
 
 	return (
@@ -213,7 +219,7 @@ const AddMill = ({ route, navigation }) => {
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
 					value={form.quantity_received}
 					setValue={(e) => handleChange(e, "quantity_received")}
-					placeholder={t("quantityReceived")}
+					placeholder={`${t("quantityReceived")} (${t("maund")})`}
 					width={width * 0.86}
 					fontSize={FontSize.F18}
 					borderRadius={0}
