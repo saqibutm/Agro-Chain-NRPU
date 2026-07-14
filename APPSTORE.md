@@ -76,7 +76,7 @@ In App Store Connect → App Review Information:
 |-------|-------|
 | Demo mobile number | `03000000001` (role: farmer) — or any of the 5 test accounts below |
 | Demo password | `qwe@123` |
-| Notes | "Sign in with the mobile number and password above, or tap 'Don't have an account? Sign Up' to create a new account with any 11-digit number starting with 0. All supply-chain screens (batch registration, transfers, quality tests, QR scanning, fraud alerts) work against a live backend — no demo/offline mode is used for this build. Camera (QR scan) and GPS features require device permissions." |
+| Notes | "Sign in with the mobile number and password above, or tap 'Don't have an account? Sign Up' to create a new account with any 11-digit number starting with 0. All supply-chain screens (batch registration, transfers, quality tests, QR scanning, fraud alerts, mill locations, mill-to-lab sample transfers) work against a live backend — no demo/offline mode is used for this build. Camera (QR scan, profile picture) and GPS features require device permissions. Account deletion is in Settings → Delete Account." |
 
 Other test accounts (same password `qwe@123`), useful if the reviewer wants to see a
 different role's dashboard: `03000000002` (mill), `03000000003` (lab), `03000000004`
@@ -103,23 +103,39 @@ different role's dashboard: `03000000002` (mill), `03000000003` (lab), `03000000
 | Coarse location | Yes | Yes | No |
 | Name / User ID | Yes | Yes | No |
 | Product interaction | Yes | Yes | No |
-| Camera | No (live scan only, not stored) | — | — |
+| Photos | Yes (optional profile picture only) | Yes | No |
+| Camera (QR scan) | No (live scan only, not stored) | — | — |
 | Crash data | No | — | — |
 | Third-party advertising | No | — | — |
 
-Select "No" for "Does your app use data for tracking?".
+Select "No" for "Does your app use data for tracking?". Photos: only collected if the
+user chooses to set a profile picture in Settings (camera or library) — see
+`DATA_SAFETY.md` §Part B item 5 and `PRIVACY.md` §2.d.
+
+**Account deletion (Guideline 5.1.1(v)):** the app supports in-app account creation, so
+it must also support in-app account deletion — it does: Settings → Delete Account. This
+calls the `delete-account` Supabase Edge Function, which removes the auth user and
+profile, and anonymizes (not deletes) any supply-chain records they created, preserving
+the audit trail for other participants. Mention this in the App Review notes (§8) so the
+reviewer knows where to find it if they check.
 
 ---
 
 ## 11. Release notes (v1.0.0)
 
 > First release of AgroChain.
-> • Farm-to-consumer traceability for wheat & sugar
+> • Farm-to-consumer traceability for wheat & sugarcane
+> • Farmers weigh in maund (mills weigh in kg downstream); a printable/shareable QR
+>   label is generated per batch and refreshed with current status at every step
+> • Mill operators can register multiple mill locations and send lab samples
+>   (capped at 1kg) for testing, with a pending-samples inbox for the lab
 > • QR scanning with full product journey and GPS route map
-> • Quality reports, fraud alerts, and live KPI dashboard
+> • Quality reports, fraud alerts (including live weight-variance checks), and a
+>   live KPI dashboard
 > • Offline-first capture with automatic sync
 > • English and Urdu support
 > • Sign in or create an account with just a mobile number — no email required
+> • Optional profile picture; delete your account at any time from Settings
 
 ---
 
@@ -149,8 +165,9 @@ EAS auto-increments `buildNumber` via `autoIncrement: true`.
 | Version | `app.json` → `expo.version` | 1.0.0 |
 | Build number | managed remotely by EAS (`autoIncrement`) | auto |
 | Camera permission | `app.json` → `ios.infoPlist` | ✓ |
+| Photo library permission | `expo-image-picker` plugin config | ✓ |
 | Location permission | `app.json` → `ios.infoPlist` | ✓ |
-| Always-location blocked | `app.json` → `ios.infoPlist` | ✓ (false) |
+| Always-location / microphone stripped | `plugins/withStripUnusedIosPermissions.js` | ✓ |
 | Tablet support | `app.json` → `ios.supportsTablet` | true |
 | iOS archive profile | `eas.json` → `build.production.ios` | ✓ |
 | iOS submit profile | `eas.json` → `submit.production.ios` | needs IDs filled |
