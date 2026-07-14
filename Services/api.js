@@ -8,6 +8,7 @@ export const Actions = {
   SEND_WHEAT_BATCH:     "SEND_WHEAT_BATCH",
   REPORT_CONSUMER_ISSUE:"REPORT_CONSUMER_ISSUE",
   RECORD_QUALITY_TEST:  "RECORD_QUALITY_TEST",
+  CREATE_MILL_LOCATION: "CREATE_MILL_LOCATION",
 };
 
 // Current authenticated user's ID, read from the local session (no network
@@ -62,6 +63,18 @@ export async function dispatch(action, payload) {
         longitude:      payload.longitude|| null,
         status:         "Created",
         created_by:     createdBy,
+      });
+      if (error) throw _dispatchError(error);
+      return { success: true };
+    }
+
+    case Actions.CREATE_MILL_LOCATION: {
+      const { error } = await supabase.from("mills").insert({
+        owner_id: createdBy,
+        name:     payload.name,
+        location: payload.location || null,
+        latitude: payload.latitude || null,
+        longitude:payload.longitude|| null,
       });
       if (error) throw _dispatchError(error);
       return { success: true };
@@ -146,6 +159,33 @@ export async function checkMillTransferExists(millID) {
     .eq("to_entity_id", millID);
   if (error) throw new Error(error.message);
   return (count || 0) > 0;
+}
+
+// Used by Screens/Mill/ManageMills.js (list) and Screens/Mill/Add.js (picker).
+export async function queryMyMills() {
+  const userId = await _currentUserId();
+  if (!userId) return { mills: [] };
+  const { data, error } = await supabase
+    .from("mills")
+    .select("*")
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return {
+    mills: data.map((m) => ({
+      id: m.id,
+      name: m.name,
+      location: m.location,
+      latitude: m.latitude,
+      longitude: m.longitude,
+    })),
+  };
+}
+
+// RLS restricts this to the owner, so no explicit ownership check needed here.
+export async function deleteMillLocation(id) {
+  const { error } = await supabase.from("mills").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function queryWheatBatch(username, wheatBatchID) {

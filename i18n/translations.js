@@ -27,6 +27,7 @@ export const translations = {
     cropProduced: "Crop Produced",
     camera: "Camera",
     qrScanner: "QR Scanner",
+    scanQrCode: "Scan QR Code",
     faqs: "FAQs",
 
     // Dashboard KPIs
@@ -72,6 +73,16 @@ export const translations = {
     quantityReceived: "Quantity Received",
     expiryDate: "Expiry Date",
     validMill: "Valid Mill",
+    myMills: "My Mills",
+    addMillLocation: "Add Mill Location",
+    millNameRequired: "Mill name is required.",
+    noMillsYet: "You haven't registered any mill locations yet.",
+    removeMill: "Remove Mill",
+    removeMillConfirm: "Remove this mill location? This doesn't affect any past transfers already recorded.",
+    remove: "Remove",
+    chooseMill: "Choose a registered mill",
+    enterMillManually: "Enter mill details manually",
+    registerMillHint: "Register your mill locations to pick from a list here instead.",
 
     // Quality report
     moisture: "Moisture",
@@ -218,6 +229,7 @@ export const translations = {
     cropProduced: "فصل کی پیداوار",
     camera: "کیمرہ",
     qrScanner: "کیو آر سکینر",
+    scanQrCode: "کیو آر کوڈ اسکین کریں",
     faqs: "عمومی سوالات",
 
     // Dashboard KPIs
@@ -263,6 +275,16 @@ export const translations = {
     quantityReceived: "موصول شدہ مقدار",
     expiryDate: "میعاد ختم ہونے کی تاریخ",
     validMill: "تصدیق شدہ مل",
+    myMills: "میری ملز",
+    addMillLocation: "مل کا مقام شامل کریں",
+    millNameRequired: "مل کا نام درکار ہے۔",
+    noMillsYet: "آپ نے ابھی تک کوئی مل مقام رجسٹر نہیں کیا۔",
+    removeMill: "مل ہٹائیں",
+    removeMillConfirm: "اس مل کے مقام کو ہٹا دیں؟ اس سے ماضی میں ریکارڈ شدہ ٹرانسفرز متاثر نہیں ہوں گے۔",
+    remove: "ہٹائیں",
+    chooseMill: "رجسٹرڈ مل منتخب کریں",
+    enterMillManually: "مل کی تفصیلات خود درج کریں",
+    registerMillHint: "یہاں فہرست سے منتخب کرنے کے لیے اپنی مل کے مقامات رجسٹر کریں۔",
 
     // Quality report
     moisture: "نمی",

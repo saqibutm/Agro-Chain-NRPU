@@ -3,10 +3,14 @@ import { Text, View, StyleSheet, Animated } from "react-native";
 import { Camera } from "expo-camera";
 import Backward from "../Abstracts/Backward";
 
-const QRScanner = ({ navigation }) => {
+const QRScanner = ({ navigation, route }) => {
     const [hasPermission, setHasPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
     const [linePosition] = useState(new Animated.Value(0));
+    // Opened from a form (AddMill/LabDashboard "Scan QR" button) instead of
+    // the Home quick action: return the scanned ID to that screen's params
+    // instead of jumping to ProductJourney.
+    const { returnScreen, returnParamKey } = route?.params || {};
 
     useEffect(() => {
         const getCameraPermissions = async () => {
@@ -32,7 +36,14 @@ const QRScanner = ({ navigation }) => {
         setScanned(true);
         // The QR encodes a product ID (or a verify URL ending in the product ID).
         const productID = data.includes("/") ? data.split("/").pop() : data;
-        navigation.navigate("ProductJourney", { productID });
+        if (returnScreen && returnParamKey) {
+            // navigate() (not push/goBack) pops back to the existing instance
+            // of returnScreen already on the stack and merges these params
+            // into whatever it already had (e.g. AddMill's farmer_id).
+            navigation.navigate(returnScreen, { [returnParamKey]: productID });
+        } else {
+            navigation.navigate("ProductJourney", { productID });
+        }
         setScanned(false);
     };
 

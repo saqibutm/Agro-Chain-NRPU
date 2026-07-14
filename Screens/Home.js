@@ -21,6 +21,7 @@ const ROLE_ACTIONS = {
         { labelKey: "faqs",              screen: "FAQs"          },
     ],
     mill:      [
+        { labelKey: "myMills",           screen: "ManageMills"   },
         { labelKey: "addMill",           screen: "AddMill"       },
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },

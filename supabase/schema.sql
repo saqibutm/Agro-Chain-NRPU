@@ -104,6 +104,23 @@ create table if not exists public.consumer_issues (
   created_at   timestamptz default now()
 );
 
+-- ── Mill locations ────────────────────────────────────────────────────────────
+-- A mill operator can run more than one physical mill. Each row here is one
+-- location they've registered from Screens/Mill/ManageMills.js, used to
+-- populate a picker on the "record a batch transfer" form (Screens/Mill/Add.js)
+-- instead of free-typing the name/location — and risking typos or
+-- inconsistent spelling of the same mill — on every single transfer.
+create table if not exists public.mills (
+  id         uuid primary key default gen_random_uuid(),
+  owner_id   uuid not null references auth.users(id) on delete cascade,
+  name       text not null,
+  location   text,
+  latitude   numeric,
+  longitude  numeric,
+  created_at timestamptz default now(),
+  unique (owner_id, name)
+);
+
 -- ── Row-level security ────────────────────────────────────────────────────────
 -- For a research demo: allow anon read + authenticated write.
 -- Tighten per-role in production.
@@ -112,6 +129,7 @@ alter table public.wheat_batches  enable row level security;
 alter table public.batch_transfers enable row level security;
 alter table public.quality_reports enable row level security;
 alter table public.consumer_issues enable row level security;
+alter table public.mills          enable row level security;
 
 -- Public read
 create policy "public read profiles"        on public.profiles        for select using (true);
@@ -119,6 +137,7 @@ create policy "public read wheat_batches"   on public.wheat_batches   for select
 create policy "public read batch_transfers" on public.batch_transfers  for select using (true);
 create policy "public read quality_reports" on public.quality_reports  for select using (true);
 create policy "public read consumer_issues" on public.consumer_issues  for select using (true);
+create policy "public read mills"           on public.mills           for select using (true);
 
 -- Authenticated write
 create policy "auth insert wheat_batches"   on public.wheat_batches   for insert with check (auth.role() = 'authenticated');
@@ -126,6 +145,12 @@ create policy "auth update wheat_batches"   on public.wheat_batches   for update
 create policy "auth insert batch_transfers" on public.batch_transfers  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert quality_reports" on public.quality_reports  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert consumer_issues" on public.consumer_issues  for insert with check (auth.role() = 'authenticated');
+
+-- Mills: only the registering operator can add/remove their own locations
+-- (unlike the tables above, this one has a real owner, so it isn't just
+-- "any authenticated user").
+create policy "owner insert mills" on public.mills for insert with check (auth.uid() = owner_id);
+create policy "owner delete mills" on public.mills for delete using  (auth.uid() = owner_id);
 
 -- ── Avatar update ─────────────────────────────────────────────────────────────
 -- No general "update own profile" RLS policy: that would let a user rewrite

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Platform, Dimensions, StyleSheet } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, Platform, Dimensions, StyleSheet, TouchableOpacity } from "react-native";
 import Alert from "../../Abstracts/Alert";
 import Container from "../../Abstracts/Container";
 import Input from "../../Abstracts/TextInput";
@@ -8,8 +8,8 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import SyncStatusBar from "../../Abstracts/SyncStatusBar";
 import Backward from "../../Abstracts/Backward";
 import { useSync } from "../../Services/SyncContext";
-import { Actions } from "../../Services/api";
-import { DEFAULT_USERNAME } from "../../Services/config";
+import { Actions, queryMyMills } from "../../Services/api";
+import { DEFAULT_USERNAME, DEMO_MODE } from "../../Services/config";
 import { useI18n } from "../../i18n/I18nContext";
 import { useAuth } from "../../Services/AuthContext";
 import { FontSize } from "../../Abstracts/Theme";
@@ -32,6 +32,39 @@ const AddMill = ({ route, navigation }) => {
 		expiry_date: ""
 	});
 	const [datePickerKey, setDatePickerKey] = useState(null); // "product_date" | "expiry_date"
+
+	// This operator's own registered mill locations (Screens/Mill/ManageMills.js)
+	// — when they have any, default to picking from that list instead of
+	// free-typing the name/location fresh on every transfer.
+	const [myMills, setMyMills] = useState([]);
+	const [millPickerOpen, setMillPickerOpen] = useState(false);
+	const [manualEntry, setManualEntry] = useState(true);
+
+	const loadMyMills = useCallback(async () => {
+		if (DEMO_MODE) return;
+		try {
+			const { mills } = await queryMyMills();
+			setMyMills(mills);
+			if (mills.length > 0) setManualEntry(false);
+		} catch {
+			// Non-fatal — the form still works with manual entry.
+		}
+	}, []);
+
+	useEffect(() => { loadMyMills(); }, [loadMyMills]);
+
+	const selectMill = (mill) => {
+		setForm((f) => ({ ...f, mill_name: mill.name, location: mill.location || "" }));
+		setMillPickerOpen(false);
+	};
+
+	// Filled in when returning from QRScanner (see the "Scan QR Code" button
+	// below) — QRScanner navigates back here with { scannedBatchNumber }.
+	useEffect(() => {
+		if (route?.params?.scannedBatchNumber) {
+			setForm((f) => ({ ...f, batch_number: route.params.scannedBatchNumber }));
+		}
+	}, [route?.params?.scannedBatchNumber]);
 
 	const showDatePicker = (key) => setDatePickerKey(key);
 	const hideDatePicker = () => setDatePickerKey(null);
@@ -93,26 +126,69 @@ const AddMill = ({ route, navigation }) => {
 					<Backward onPress={() => navigation.goBack()} />
 					<Text style={styles.headText}>{t("addMill")}</Text>
 				</View>
-				<Input
-					style={{ borderBottomWidth: 1, marginVertical: 8 }}
-					value={form.mill_name}
-					setValue={(e) => handleChange(e, "mill_name")}
-					placeholder={t("millName")}
-					width={width * 0.86}
-					fontSize={FontSize.F18}
-					borderRadius={0}
-					borderWidth={0}
-				/>
-				<Input
-					style={{ borderBottomWidth: 1, marginVertical: 8 }}
-					value={form.location}
-					setValue={(e) => handleChange(e, "location")}
-					placeholder={t("location")}
-					width={width * 0.86}
-					fontSize={FontSize.F18}
-					borderRadius={0}
-					borderWidth={0}
-				/>
+				{myMills.length > 0 && !manualEntry ? (
+					<View style={styles.dropdownWrap}>
+						<TouchableOpacity
+							style={styles.dropdownSelector}
+							activeOpacity={0.8}
+							onPress={() => setMillPickerOpen((open) => !open)}
+						>
+							<Text style={form.mill_name ? styles.dropdownSelectorText : styles.dropdownPlaceholder}>
+								{form.mill_name || t("chooseMill")}
+							</Text>
+							<Text style={styles.dropdownChevron}>{millPickerOpen ? "▲" : "▼"}</Text>
+						</TouchableOpacity>
+						{millPickerOpen && (
+							<View style={styles.dropdownList}>
+								{myMills.map((mill) => (
+									<TouchableOpacity
+										key={mill.id}
+										style={styles.dropdownOption}
+										onPress={() => selectMill(mill)}
+									>
+										<Text style={styles.dropdownOptionText}>{mill.name}</Text>
+										{!!mill.location && <Text style={styles.dropdownOptionSub}>{mill.location}</Text>}
+									</TouchableOpacity>
+								))}
+							</View>
+						)}
+						<Text style={styles.switchModeLink} onPress={() => { setManualEntry(true); setMillPickerOpen(false); }}>
+							{t("enterMillManually")}
+						</Text>
+					</View>
+				) : (
+					<>
+						<Input
+							style={{ borderBottomWidth: 1, marginVertical: 8 }}
+							value={form.mill_name}
+							setValue={(e) => handleChange(e, "mill_name")}
+							placeholder={t("millName")}
+							width={width * 0.86}
+							fontSize={FontSize.F18}
+							borderRadius={0}
+							borderWidth={0}
+						/>
+						<Input
+							style={{ borderBottomWidth: 1, marginVertical: 8 }}
+							value={form.location}
+							setValue={(e) => handleChange(e, "location")}
+							placeholder={t("location")}
+							width={width * 0.86}
+							fontSize={FontSize.F18}
+							borderRadius={0}
+							borderWidth={0}
+						/>
+						{myMills.length > 0 ? (
+							<Text style={styles.switchModeLink} onPress={() => setManualEntry(false)}>
+								{t("chooseMill")}
+							</Text>
+						) : (
+							<Text style={styles.switchModeLink} onPress={() => navigation.navigate("ManageMills")}>
+								{t("registerMillHint")}
+							</Text>
+						)}
+					</>
+				)}
 				<Input
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
 					value={form.batch_number}
@@ -122,6 +198,16 @@ const AddMill = ({ route, navigation }) => {
 					fontSize={FontSize.F18}
 					borderRadius={0}
 					borderWidth={0}
+				/>
+				<Button
+					text={t("scanQrCode")}
+					onPress={() => navigation.navigate("QRScanner", { returnScreen: "AddMill", returnParamKey: "scannedBatchNumber" })}
+					width={width * 0.86}
+					color="green"
+					borderWidth={1.5}
+					borderColor="green"
+					fontSize={FontSize.F16}
+					style={{ marginVertical: 4, alignSelf: "center" }}
 				/>
 				<Input
 					style={{ borderBottomWidth: 1, marginVertical: 8 }}
@@ -205,7 +291,46 @@ const styles = StyleSheet.create({
 		marginTop: height * 0.04,
 		textAlign: "center",
 		flex: 1,
-	}
+	},
+	dropdownWrap: {
+		width: width * 0.86,
+		marginVertical: 8,
+		zIndex: 10,
+	},
+	dropdownSelector: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		borderBottomWidth: 1,
+		borderColor: "#aaaaaa",
+		paddingVertical: 10,
+	},
+	dropdownSelectorText: { color: "#000", fontSize: FontSize.F18 },
+	dropdownPlaceholder: { color: "#00000080", fontSize: FontSize.F18 },
+	dropdownChevron: { color: "green", fontSize: 12 },
+	dropdownList: {
+		marginTop: 4,
+		borderWidth: 1.5,
+		borderColor: "green",
+		borderRadius: 8,
+		backgroundColor: "white",
+		overflow: "hidden",
+	},
+	dropdownOption: {
+		paddingVertical: 10,
+		paddingHorizontal: 14,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: "#dCe8dC",
+	},
+	dropdownOptionText: { color: "#222", fontSize: FontSize.F16, fontWeight: "600" },
+	dropdownOptionSub: { color: "#777", fontSize: FontSize.F13, marginTop: 2 },
+	switchModeLink: {
+		color: "green",
+		fontSize: FontSize.F13,
+		fontWeight: "600",
+		marginTop: 6,
+		textDecorationLine: "underline",
+	},
 })
 
 export default AddMill;

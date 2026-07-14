@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, StyleSheet, Dimensions, Switch, Platform, TouchableOpacity } from "react-native";
 import Alert from "../Abstracts/Alert";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -36,7 +36,7 @@ const Segmented = ({ options, value, onChange, activeColor = "green" }) => (
 	</View>
 );
 
-const LabDashboard = ({ navigation }) => {
+const LabDashboard = ({ navigation, route }) => {
 	const { t } = useI18n();
 	const { submit } = useSync();
 	const { user } = useAuth();
@@ -60,6 +60,14 @@ const LabDashboard = ({ navigation }) => {
 	const [submitting, setSubmitting] = useState(false);
 
 	const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
+
+	// Filled in when returning from QRScanner (see the "Scan QR Code" button
+	// below) — QRScanner navigates back here with { scannedSubjectID }.
+	useEffect(() => {
+		if (route?.params?.scannedSubjectID) {
+			set("subjectID", route.params.scannedSubjectID);
+		}
+	}, [route?.params?.scannedSubjectID]);
 
 	const handleConfirmDate = (date) => {
 		if (date) set("testDate", date.toISOString().split("T")[0]);
@@ -137,6 +145,16 @@ const LabDashboard = ({ navigation }) => {
 
 				<Input {...inputProps} value={form.reportID} setValue={(e) => set("reportID", e)} placeholder={t("reportId")} />
 				<Input {...inputProps} value={form.subjectID} setValue={(e) => set("subjectID", e)} placeholder={t("subjectId")} />
+				<Button
+					text={t("scanQrCode")}
+					onPress={() => navigation.navigate("QRScanner", { returnScreen: "LabDashboard", returnParamKey: "scannedSubjectID" })}
+					width={width * 0.86}
+					color="green"
+					borderWidth={1.5}
+					borderColor="green"
+					fontSize={FontSize.F16}
+					style={{ marginVertical: 4, alignSelf: "center" }}
+				/>
 				<Input {...inputProps} value={form.labID} setValue={(e) => set("labID", e)} placeholder={t("labId")} />
 				<Input {...inputProps} value={form.testedBy} setValue={(e) => set("testedBy", e)} placeholder={t("testedBy")} />
 
