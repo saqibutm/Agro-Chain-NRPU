@@ -6,7 +6,7 @@ import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
 import { useAuth } from "../Services/AuthContext";
-import { queryAllQualityReports } from "../Services/api";
+import { queryAllQualityReports, queryWeightVarianceRecords } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 import { getQualityReports } from "../Services/demoData";
 import { cacheGet, cacheSet, CacheKeys } from "../Services/cache";
@@ -14,9 +14,11 @@ import { evaluate, checkDuplicateQR, evaluateQualityReports, Severity } from "..
 const { width, height } = Dimensions.get("window");
 
 // Sample rule-engine inputs (Pakistan-specific batch IDs) for DEMO_MODE only.
-// These must never reach real users — weight-variance/extraction-ratio/
-// duplicate-QR checks against real transfer/scan data aren't wired up yet
-// (only the quality-report-based checks are, via loadQualityAlerts below).
+// Weight variance also runs against real data now (loadWeightVarianceAlerts
+// below) since wheat_batches.quantity and batch_transfers.quantity are both
+// stored in kg. Extraction-ratio and transit-duration stay demo-only — the
+// schema has no flour-output or departure/arrival timestamp fields to check
+// them against. Duplicate-QR stays demo-only too — there's no scan-log table.
 const sampleRecords = DEMO_MODE ? [
     { batchID: "WBATCH-FSD-2025-0001", weightAtPickup: 5000, weightAtDelivery: 4760 },
     { batchID: "WBATCH-SWL-2025-0003", wheatInputKg: 1000, flourOutputKg: 920 },
@@ -40,14 +42,17 @@ const FraudAlerts = ({ navigation }) => {
     const { user } = useAuth();
     const username = user?.username || DEFAULT_USERNAME;
     const [qualityAlerts, setQualityAlerts] = useState(DEMO_MODE ? evaluateQualityReports(getQualityReports()) : []);
+    const [weightAlerts, setWeightAlerts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [cachedAt, setCachedAt] = useState(null);
 
     // Rule-based alerts from local records (always available, even offline).
-    const baseAlerts = [
+    // Demo-only: extraction ratio and transit duration have no real-data
+    // equivalent (see the comment above sampleRecords).
+    const baseAlerts = DEMO_MODE ? [
         ...sampleRecords.flatMap((r) => evaluate(r)),
         ...checkDuplicateQR(sampleScans),
-    ];
+    ] : [];
 
     // Live alerts derived from quality reports in the traceability database.
     const loadQualityAlerts = useCallback(async () => {
@@ -74,11 +79,33 @@ const FraudAlerts = ({ navigation }) => {
         }
     }, [isOnline, username]);
 
-    useEffect(() => { loadQualityAlerts(); }, [loadQualityAlerts]);
+    // Live weight-variance alerts: farmer's declared batch weight vs. what
+    // the mill recorded receiving, for every batch that has a transfer.
+    const loadWeightAlerts = useCallback(async () => {
+        if (DEMO_MODE) return;
 
-    // Quality alerts (live) sort to the top; high severity first.
+        const cached = await cacheGet(CacheKeys.WEIGHT_VARIANCE);
+        if (cached) setWeightAlerts(cached.data.flatMap((r) => evaluate(r)));
+
+        if (!isOnline) return;
+        try {
+            const records = await queryWeightVarianceRecords();
+            setWeightAlerts(records.flatMap((r) => evaluate(r)));
+            await cacheSet(CacheKeys.WEIGHT_VARIANCE, records);
+        } catch (e) {
+            // Backend unreachable — cached or rule-based alerts remain.
+        }
+    }, [isOnline]);
+
+    useEffect(() => { loadQualityAlerts(); loadWeightAlerts(); }, [loadQualityAlerts, loadWeightAlerts]);
+
+    const refresh = useCallback(async () => {
+        await Promise.all([loadQualityAlerts(), loadWeightAlerts()]);
+    }, [loadQualityAlerts, loadWeightAlerts]);
+
+    // Live alerts sort to the top; high severity first.
     const order = { [Severity.HIGH]: 0, [Severity.MEDIUM]: 1, [Severity.LOW]: 2 };
-    const alerts = [...qualityAlerts, ...baseAlerts].sort(
+    const alerts = [...qualityAlerts, ...weightAlerts, ...baseAlerts].sort(
         (a, b) => order[a.severity] - order[b.severity]
     );
 
@@ -98,7 +125,7 @@ const FraudAlerts = ({ navigation }) => {
             <ScrollView
                 style={{ marginTop: height * 0.02 }}
                 showsVerticalScrollIndicator={false}
-                refreshControl={<RefreshControl refreshing={loading} onRefresh={loadQualityAlerts} colors={["green"]} />}
+                refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} colors={["green"]} />}
             >
                 {alerts.length === 0 ? (
                     <Text style={styles.empty}>No anomalies detected ✓</Text>

@@ -287,6 +287,33 @@ export async function queryAllProducts(username) {
   return { products: data.map(_mapProduct) };
 }
 
+// Used by Screens/FraudAlerts.js's live weight-variance check: the farmer's
+// declared batch weight ("pickup") vs. what the mill actually recorded
+// receiving ("delivery") for that same batch — both stored in kg, so this is
+// a straight comparison. Only batches with at least one recorded transfer
+// are included. Capped at 200 most-recent batches — this is an in-app
+// anomaly scan, not a full ledger audit.
+export async function queryWeightVarianceRecords() {
+  const { data, error } = await supabase
+    .from("wheat_batches")
+    .select("wheat_batch_id, quantity, batch_transfers(quantity, created_at)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throw new Error(error.message);
+  return data
+    .filter((b) => b.batch_transfers && b.batch_transfers.length > 0)
+    .map((b) => {
+      const firstTransfer = [...b.batch_transfers].sort(
+        (x, y) => (x.created_at < y.created_at ? -1 : 1)
+      )[0];
+      return {
+        batchID: b.wheat_batch_id,
+        weightAtPickup: b.quantity,
+        weightAtDelivery: firstTransfer.quantity,
+      };
+    });
+}
+
 export async function queryProduct(username, productID) {
   const [batchRes, transferRes, qualRes] = await Promise.all([
     supabase.from("wheat_batches").select("*").eq("wheat_batch_id", productID).single(),

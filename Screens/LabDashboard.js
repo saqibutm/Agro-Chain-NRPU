@@ -183,9 +183,14 @@ const LabDashboard = ({ navigation, route }) => {
 									<View style={{ flex: 1 }}>
 										<Text style={styles.sampleId}>{sample.sampleID}</Text>
 										<Text style={styles.sampleSub}>
-											{t("batchNumber")}: {sample.wheatBatchID}{sample.variety ? ` · ${sample.variety}` : ""}
+											{t("batchNumber")}: {sample.wheatBatchID}{sample.variety ? ` · ${sample.variety}` : ""}{sample.batchQuantity != null ? ` (${sample.batchQuantity}kg)` : ""}
 										</Text>
-										<Text style={styles.sampleSub}>{t("from")}: {sample.fromMillID}</Text>
+										<Text style={styles.sampleSub}>
+											{t("from")}: {sample.fromMillID}{sample.quantity ? ` · ${sample.quantity}g` : ""}
+										</Text>
+										{!!sample.sentDate && (
+											<Text style={styles.sampleSub}>{t("sentDate")}: {sample.sentDate}</Text>
+										)}
 									</View>
 									{active && <Text style={styles.sampleCheck}>✓</Text>}
 								</TouchableOpacity>
