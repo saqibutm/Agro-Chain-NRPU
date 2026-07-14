@@ -46,6 +46,10 @@ Deno.serve(async (req) => {
   // Admin client for the actual deletion.
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+  // Profile photo lives at "<user id>/avatar.jpg" in the "avatars" bucket —
+  // remove it so it doesn't outlive the account it belonged to.
+  await admin.storage.from("avatars").remove([`${user.id}/avatar.jpg`]);
+
   for (const { table, column } of ANONYMIZE_TARGETS) {
     const { error } = await admin.from(table).update({ [column]: null }).eq(column, user.id);
     if (error) return json({ error: `Failed to anonymize ${table}: ${error.message}` }, 500);

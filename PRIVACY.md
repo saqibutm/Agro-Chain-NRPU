@@ -41,8 +41,15 @@ this policy.
   traceability record.
 
 ### c. Camera
-- The camera is used **only** to scan product QR codes in real time. Camera images/frames
-  are **not** collected, stored, or transmitted.
+- For QR scanning, the camera is used **only** to read codes in real time. Those camera
+  images/frames are **not** collected, stored, or transmitted.
+- Separately, if you choose to set a profile picture, you may take a new photo or choose
+  an existing one from your photo library. That single image **is** stored (see §2.d).
+
+### d. Profile picture
+- Optional. If you set one, the photo you choose is uploaded and stored against your
+  account so it can be shown throughout the App. You can replace it at any time in
+  Settings, and it is deleted if you delete your account (§8).
 
 We do **not** collect contacts, messages, browsing history, biometrics, or advertising
 identifiers, and the App contains **no third-party advertising**.

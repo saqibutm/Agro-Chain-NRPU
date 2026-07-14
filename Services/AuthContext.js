@@ -57,6 +57,8 @@ export const AuthProvider = ({ children }) => {
   const signIn = useCallback(async (phone, password, role = "farmer") => {
     let sessionPhone = phone.trim();
     let sessionRole = role;
+    let sessionUserId = null;
+    let avatarUrl = null;
 
     if (DEMO_MODE) {
       // No Supabase project configured — accept any credentials for demo.
@@ -68,14 +70,16 @@ export const AuthProvider = ({ children }) => {
       // Prefer role from profiles table over what was selected on sign-in.
       const { data: profile } = await supabase
         .from("profiles")
-        .select("username, role")
+        .select("username, role, avatar_url")
         .eq("id", data.user.id)
         .single();
-      sessionPhone = profile?.username || sessionPhone;
-      sessionRole  = profile?.role     || role;
+      sessionPhone  = profile?.username   || sessionPhone;
+      sessionRole   = profile?.role       || role;
+      sessionUserId = data.user.id;
+      avatarUrl     = profile?.avatar_url || null;
     }
 
-    const session = { username: sessionPhone, role: sessionRole };
+    const session = { username: sessionPhone, role: sessionRole, userId: sessionUserId, avatarUrl };
     // Supabase has already authenticated this user by this point — local
     // session caching is a convenience (skip sign-in next launch), not a
     // precondition. Never let it block a successful login.
@@ -92,13 +96,15 @@ export const AuthProvider = ({ children }) => {
   const adoptSession = useCallback(async (userId, fallbackPhone, fallbackRole = "farmer") => {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("username, role")
+      .select("username, role, avatar_url")
       .eq("id", userId)
       .single();
 
     const session = {
-      username: profile?.username || fallbackPhone,
-      role:     profile?.role     || fallbackRole,
+      username:  profile?.username   || fallbackPhone,
+      role:      profile?.role       || fallbackRole,
+      userId,
+      avatarUrl: profile?.avatar_url || null,
     };
     await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session)).catch((err) => {
       console.warn("adoptSession: could not persist local session:", err.message);
@@ -112,6 +118,47 @@ export const AuthProvider = ({ children }) => {
     await secureSessionStorage.removeItem(SESSION_KEY).catch(() => {});
     setUser(null);
   }, []);
+
+  // Uploads a locally-picked photo (from expo-image-picker) as the user's
+  // avatar and persists it. Writes go through the update_own_avatar RPC
+  // rather than a direct table update — see supabase/schema.sql for why
+  // (a general "update own profile" policy would let a user rewrite their
+  // own `role` column).
+  const updateAvatar = useCallback(async (localUri) => {
+    if (DEMO_MODE) {
+      const session = { ...user, avatarUrl: localUri };
+      await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session)).catch(() => {});
+      setUser(session);
+      return session;
+    }
+
+    if (!user?.userId) throw new Error("Not signed in.");
+
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+    const path = `${user.userId}/avatar.jpg`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    // Cache-bust: the storage path is fixed (upsert overwrites in place), so
+    // without this the Image component and any CDN cache would keep showing
+    // the previous photo under the same URL.
+    const avatarUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: rpcError } = await supabase.rpc("update_own_avatar", { new_avatar_url: avatarUrl });
+    if (rpcError) throw new Error(rpcError.message);
+
+    const session = { ...user, avatarUrl };
+    await secureSessionStorage.setItem(SESSION_KEY, JSON.stringify(session)).catch((err) => {
+      console.warn("updateAvatar: could not persist local session:", err.message);
+    });
+    setUser(session);
+    return session;
+  }, [user]);
 
   // Permanently deletes the signed-in user's account (Apple Guideline
   // 5.1.1(v) requires in-app deletion for apps that support in-app sign-up).
@@ -138,7 +185,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, deleteAccount, adoptSession }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, deleteAccount, adoptSession, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

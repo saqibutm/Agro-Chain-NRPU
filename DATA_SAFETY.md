@@ -54,10 +54,17 @@ Mark **only** the following as collected. Everything else = **Not collected**.
 - Required or optional: **Required**
 - Purposes: **App functionality** (supply-chain transactions in the traceability database)
 
+### 5. Photos or videos → Photos
+- Collected: **Yes** · Shared: **No**
+- Required or optional: **Optional** (only if the user chooses to set a profile picture)
+- Purposes: **App functionality**, **Account management**
+- Note: a single profile picture the user picks from their library or takes with the
+  camera, stored in the "avatars" bucket. QR-scan camera frames are still live-only and
+  never collected or stored.
+
 ### Explicitly NOT collected
 - Financial info · Health & fitness · Messages · Contacts · Calendar
-- **Photos/Videos** — camera is used live for QR scanning only; frames are not collected or stored
-- Audio · Files/Docs · Web browsing history
+- Videos · Audio · Files/Docs · Web browsing history
 - **Device or other IDs / Advertising ID** — none used
 - **No third-party advertising; no analytics SDK** (as of v1.0.0)
 
@@ -85,6 +92,7 @@ Mark **only** the following as collected. Everything else = **Not collected**.
 | Precise location | Yes | No | Optional | App functionality | No |
 | Name / User IDs | Yes | No | Required | App functionality, Account management | No |
 | In-app actions | Yes | No | Required | App functionality | No |
+| Photos | Yes | No | Optional | App functionality, Account management | No |
 
 ---
 
@@ -92,7 +100,8 @@ Mark **only** the following as collected. Everything else = **Not collected**.
 
 | Permission | Manifest string | Console justification |
 |------------|-----------------|-----------------------|
-| Camera | `NSCameraUsageDescription` / `CAMERA` | Scan product QR codes for supply-chain verification |
+| Camera | `NSCameraUsageDescription` / `CAMERA` | Scan product QR codes for supply-chain verification, and optionally take a profile picture |
+| Photo library | `NSPhotoLibraryUsageDescription` / `READ_MEDIA_IMAGES` | Choose an existing photo as a profile picture |
 | Location (fine/coarse) | `NSLocationWhenInUseUsageDescription` / `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | Geotag farm harvests and custody transfers |
 
 > Background location is **not** requested. Do not check any "background location" boxes.

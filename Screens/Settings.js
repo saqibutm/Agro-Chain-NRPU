@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking } from "react-native";
+import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking, Image, ActivityIndicator } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import Alert from "../Abstracts/Alert";
 import Container from "../Abstracts/Container";
 import Backward from "../Abstracts/Backward";
@@ -10,8 +11,62 @@ const { width, height } = Dimensions.get("window");
 
 const Settings = ({ navigation }) => {
     const { t, language, changeLanguage } = useI18n();
-    const { signOut, deleteAccount, user } = useAuth();
+    const { signOut, deleteAccount, updateAvatar, user } = useAuth();
     const [deleting, setDeleting] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    const applyPickedAvatar = async (result) => {
+        if (result.canceled || !result.assets?.[0]?.uri) return;
+        setUploadingAvatar(true);
+        try {
+            await updateAvatar(result.assets[0].uri);
+        } catch (err) {
+            Alert.alert(t("changeAvatar"), err.message || t("avatarUpdateError"));
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
+    const pickFromLibrary = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert(t("changeAvatar"), t("photoPermissionDenied"));
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+        await applyPickedAvatar(result);
+    };
+
+    const takePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+            Alert.alert(t("changeAvatar"), t("cameraPermissionDenied"));
+            return;
+        }
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+        await applyPickedAvatar(result);
+    };
+
+    const handleChangeAvatar = () => {
+        Alert.alert(
+            t("changeAvatar"),
+            null,
+            [
+                { text: t("cancel"), style: "cancel" },
+                { text: t("takePhoto"), onPress: takePhoto },
+                { text: t("chooseFromLibrary"), onPress: pickFromLibrary },
+            ]
+        );
+    };
 
     const handleDeleteAccount = () => {
         Alert.alert(
@@ -44,12 +99,27 @@ const Settings = ({ navigation }) => {
                 <Text style={styles.headText}>{t("settings")}</Text>
             </View>
             <View style={{ flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                {/* Farmer avatar. To use a real photo instead, drop an image at
-                    Images/farmer.jpg and replace this View with:
-                    <Image source={require("../Images/farmer.jpg")} style={styles.avatar} /> */}
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarEmoji}>🧑🏽‍🌾</Text>
-                </View>
+                <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={uploadingAvatar ? undefined : handleChangeAvatar}
+                    style={styles.avatarWrap}
+                >
+                    <View style={styles.avatar}>
+                        {user?.avatarUrl ? (
+                            <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+                        ) : (
+                            <Text style={styles.avatarEmoji}>🧑🏽‍🌾</Text>
+                        )}
+                        {uploadingAvatar && (
+                            <View style={styles.avatarOverlay}>
+                                <ActivityIndicator color="white" />
+                            </View>
+                        )}
+                    </View>
+                    <View style={styles.avatarEditBadge}>
+                        <Text style={styles.avatarEditBadgeText}>✎</Text>
+                    </View>
+                </TouchableOpacity>
                 <Text style={{ fontSize: FontSize.F22, fontWeight: "700", marginTop: 10 }}>{user?.username || t("farmer")}</Text>
             </View>
 
@@ -123,6 +193,10 @@ const styles = StyleSheet.create({
         marginTop: height * 0.04,
         marginBottom: height * 0.01,
     },
+    avatarWrap: {
+        width: 100,
+        height: 100,
+    },
     avatar: {
         width: 100,
         height: 100,
@@ -132,10 +206,39 @@ const styles = StyleSheet.create({
         borderColor: "green",
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
+    },
+    avatarImage: {
+        width: "100%",
+        height: "100%",
     },
     avatarEmoji: {
         fontSize: 54,
         lineHeight: 64,
+    },
+    avatarOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarEditBadge: {
+        position: "absolute",
+        right: 0,
+        bottom: 0,
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        backgroundColor: "green",
+        borderWidth: 2,
+        borderColor: "white",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarEditBadgeText: {
+        color: "white",
+        fontSize: FontSize.F14,
+        fontWeight: "700",
     },
     langRow: {
         flexDirection: "row",

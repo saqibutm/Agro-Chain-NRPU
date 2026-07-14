@@ -19,7 +19,7 @@
       "bundleIdentifier": "com.agrochain.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "AgroChain uses the camera to scan product QR codes for supply-chain verification.",
+        "NSCameraUsageDescription": "AgroChain uses the camera to scan product QR codes and to take a profile picture.",
         "NSLocationWhenInUseUsageDescription": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
       }
     },
@@ -50,7 +50,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "AgroChain uses the camera to scan product QR codes for supply-chain verification.",
+          "cameraPermission": "AgroChain uses the camera to scan product QR codes and to take a profile picture.",
           "recordAudioAndroid": false
         }
       ],
@@ -58,6 +58,14 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgroChain uses your photo library so you can choose a profile picture.",
+          "cameraPermission": "AgroChain uses the camera to scan product QR codes and to take a profile picture.",
+          "microphonePermission": false
         }
       ],
       "expo-secure-store"

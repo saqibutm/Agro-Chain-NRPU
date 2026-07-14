@@ -8,11 +8,15 @@
 -- 03001234567), which the app also uses to build a synthetic
 -- <number>@agrochain.local address for Supabase Auth under the hood.
 create table if not exists public.profiles (
-  id       uuid primary key references auth.users(id) on delete cascade,
-  username text unique not null,
-  role     text not null default 'farmer'
-    check (role in ('farmer','mill','lab','regulator','consumer'))
+  id         uuid primary key references auth.users(id) on delete cascade,
+  username   text unique not null,
+  role       text not null default 'farmer'
+    check (role in ('farmer','mill','lab','regulator','consumer')),
+  avatar_url text
 );
+
+-- Re-running this file against a project created before avatar_url existed.
+alter table public.profiles add column if not exists avatar_url text;
 
 -- Auto-create profile row when a new auth user is created.
 create or replace function public.handle_new_user()
@@ -122,3 +126,42 @@ create policy "auth update wheat_batches"   on public.wheat_batches   for update
 create policy "auth insert batch_transfers" on public.batch_transfers  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert quality_reports" on public.quality_reports  for insert with check (auth.role() = 'authenticated');
 create policy "auth insert consumer_issues" on public.consumer_issues  for insert with check (auth.role() = 'authenticated');
+
+-- ── Avatar update ─────────────────────────────────────────────────────────────
+-- No general "update own profile" RLS policy: that would let a user rewrite
+-- their own `role` column (farmer -> regulator) and self-escalate privilege.
+-- This RPC only ever touches avatar_url for the caller's own row.
+create or replace function public.update_own_avatar(new_avatar_url text)
+returns void language plpgsql security definer as $$
+begin
+  update public.profiles set avatar_url = new_avatar_url where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.update_own_avatar(text) from public;
+grant execute on function public.update_own_avatar(text) to authenticated;
+
+-- ── Avatar storage ────────────────────────────────────────────────────────────
+-- Public bucket (profile pictures are low-sensitivity and shown throughout
+-- the app), but a user may only write inside their own "<user id>/" folder.
+insert into storage.buckets (id, name, public)
+values ('avatars', 'avatars', true)
+on conflict (id) do nothing;
+
+create policy "avatar public read" on storage.objects
+  for select using (bucket_id = 'avatars');
+
+create policy "avatar owner write" on storage.objects
+  for insert with check (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "avatar owner update" on storage.objects
+  for update using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "avatar owner delete" on storage.objects
+  for delete using (
+    bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text
+  );
