@@ -33,6 +33,19 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Apple Ap
 
 ---
 
+## 3a. Promotional text (170 chars max)
+
+Shown above the description on the product page — the one field Apple lets you update
+anytime without submitting a new build for review.
+
+> Scan any batch to see its full farm-to-consumer journey — GPS-tracked, mill-verified,
+> and lab-tested at every step. Now with maund-based entry for farmers.
+
+(155 chars). Swap the "Now with..." clause for whatever's newest when something else
+ships — that's the point of this field.
+
+---
+
 ## 4. Full description (4000 chars max — same as Play Store)
 
 > [paste full description from STORE.md §4]
