@@ -113,8 +113,32 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
+  // Permanently deletes the signed-in user's account (Apple Guideline
+  // 5.1.1(v) requires in-app deletion for apps that support in-app sign-up).
+  // The actual delete runs server-side in the "delete-account" Edge Function
+  // — the service role privileges it needs can't live in the app.
+  const deleteAccount = useCallback(async () => {
+    if (DEMO_MODE) {
+      await secureSessionStorage.removeItem(SESSION_KEY).catch(() => {});
+      setUser(null);
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not signed in.");
+
+    const { error } = await supabase.functions.invoke("delete-account", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (error) throw new Error(error.message || "Could not delete account.");
+
+    await supabase.auth.signOut().catch(() => {});
+    await secureSessionStorage.removeItem(SESSION_KEY).catch(() => {});
+    setUser(null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, adoptSession }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut, deleteAccount, adoptSession }}>
       {children}
     </AuthContext.Provider>
   );

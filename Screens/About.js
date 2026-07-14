@@ -82,6 +82,10 @@ const About = ({ navigation }) => {
                     <Text style={styles.appTagline}>
                         Wheat &amp; Sugar Traceability using IoT and Blockchain
                     </Text>
+                    <Text style={styles.developedBy}>
+                        Developed by the Precision Agriculture Lab / Department of Computer
+                        Science, University of Agriculture, Faisalabad
+                    </Text>
                 </View>
 
                 {/* Section eyebrow */}
@@ -131,9 +135,8 @@ const About = ({ navigation }) => {
 
                     {/* Facts */}
                     <MetaRow label={t("hostInstitution")}>
-                        Department of Computer Science / Precision Agriculture Lab, Center for
-                        Advanced Studies in Agriculture and Food Security, University of
-                        Agriculture Faisalabad, Pakistan
+                        Precision Agriculture Lab / Department of Computer Science, University of
+                        Agriculture, Faisalabad, Pakistan
                     </MetaRow>
                     <MetaRow label={t("fundingAgency")}>
                         Higher Education Commission (HEC), Pakistan — National Research Program for
@@ -207,6 +210,15 @@ const styles = StyleSheet.create({
         marginTop: S.xs,
         paddingHorizontal: S.md,
         lineHeight: FontSize.F14 * 1.4,
+    },
+    developedBy: {
+        fontSize: FontSize.F13,
+        fontWeight: "700",
+        color: C.primaryDark,
+        textAlign: "center",
+        marginTop: S.sm,
+        paddingHorizontal: S.md,
+        lineHeight: FontSize.F13 * 1.4,
     },
 
     // Section eyebrow

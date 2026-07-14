@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Dimensions, StyleSheet, TouchableOpacity, Linking } from "react-native";
 import Alert from "../Abstracts/Alert";
 import Container from "../Abstracts/Container";
@@ -10,7 +10,32 @@ const { width, height } = Dimensions.get("window");
 
 const Settings = ({ navigation }) => {
     const { t, language, changeLanguage } = useI18n();
-    const { signOut, user } = useAuth();
+    const { signOut, deleteAccount, user } = useAuth();
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            t("deleteAccountConfirmTitle"),
+            t("deleteAccountConfirmMessage"),
+            [
+                { text: t("cancel"), style: "cancel" },
+                {
+                    text: t("deleteAccountConfirmButton"),
+                    style: "destructive",
+                    onPress: async () => {
+                        setDeleting(true);
+                        try {
+                            await deleteAccount();
+                        } catch (err) {
+                            Alert.alert(t("deleteAccount"), err.message || t("deleteAccountError"));
+                        } finally {
+                            setDeleting(false);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <Container style={{ alignItems: "center", justifyContent: "flex-start", paddingHorizontal: width * 0.07, paddingVertical: 10, flex: 1 }}>
@@ -70,6 +95,14 @@ const Settings = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity style={[styles.btn, { backgroundColor: "red", borderWidth: 0 }]} onPress={signOut}>
                 <Text style={{ color: "white", fontSize: FontSize.F19, fontWeight: "500" }}>{t("logout")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[styles.btn, { borderColor: "red" }]}
+                onPress={deleting ? undefined : handleDeleteAccount}
+            >
+                <Text style={{ color: "red", fontSize: FontSize.F19, fontWeight: "500" }}>
+                    {deleting ? t("deletingAccount") : t("deleteAccount")}
+                </Text>
             </TouchableOpacity>
         </Container>
     );
