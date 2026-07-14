@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import Alert from "../Abstracts/Alert";
+import Backward from "../Abstracts/Backward";
 import { Camera } from 'expo-camera';
 
 const CameraScreen = ({ navigation }) => {
@@ -24,12 +25,24 @@ const CameraScreen = ({ navigation }) => {
         navigation.navigate("ProductDetail", { imageUri: image });
     };
 
+    const backBtn = (
+        <View style={styles.backBtn}>
+            <Backward color="white" onPress={() => navigation.goBack()} />
+        </View>
+    );
+
     if (permission === null) {
-        return <View style={styles.center}><Text>Requesting camera permission…</Text></View>;
+        return (
+            <View style={styles.center}>
+                {backBtn}
+                <Text>Requesting camera permission…</Text>
+            </View>
+        );
     }
     if (permission && !permission.granted) {
         return (
             <View style={styles.center}>
+                {backBtn}
                 <Text style={{ marginBottom: 12 }}>Camera access is required.</Text>
                 <TouchableOpacity onPress={requestPermission} style={styles.btn}>
                     <Text style={styles.btnText}>Grant Permission</Text>
@@ -47,6 +60,7 @@ const CameraScreen = ({ navigation }) => {
                             <Text style={styles.captureTxt}>Capture</Text>
                         </TouchableOpacity>
                     </View>
+                    {backBtn}
                 </Camera>
             ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
@@ -59,6 +73,7 @@ const CameraScreen = ({ navigation }) => {
                             <Text style={styles.btnText}>Use Photo</Text>
                         </TouchableOpacity>
                     </View>
+                    {backBtn}
                 </View>
             )}
         </View>
@@ -72,6 +87,15 @@ const styles = StyleSheet.create({
     captureTxt: { fontSize: 18, fontWeight: '600', color: '#222' },
     btn: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 12 },
     btnText: { color: 'white', fontSize: 16, fontWeight: '600' },
+    backBtn: {
+        position: "absolute",
+        top: 50,
+        left: 20,
+        zIndex: 10,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        borderRadius: 20,
+        padding: 8,
+    },
 });
 
 export default CameraScreen;
