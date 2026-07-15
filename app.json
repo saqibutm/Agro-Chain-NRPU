@@ -35,6 +35,9 @@
         "android.permission.CAMERA",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -48,6 +51,7 @@
     },
     "plugins": [
       "./plugins/withStripUnusedIosPermissions.js",
+      "./plugins/withAndroidDisableBackup.js",
       [
         "expo-camera",
         {

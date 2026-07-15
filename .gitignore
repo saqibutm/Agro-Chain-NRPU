@@ -33,6 +33,7 @@ secrets.json
 config.local.*
 config.local.json
 *.local.json
+keystore.properties
 
 # ── Node.js ──
 node_modules/

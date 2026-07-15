@@ -7,16 +7,28 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 ## 1. Pre-requisites
 
 - [ ] Google Play Console developer account ($25 one-time) — https://play.google.com/console
-- [ ] App built as an **AAB**: `npx expo prebuild --platform android --clean`, then generate a
-      release keystore once (`keytool -genkeypair -v -keystore release.keystore -alias
-      agrochain -keyalg RSA -keysize 2048 -validity 10000`), wire it into
-      `android/app/build.gradle`'s `signingConfigs.release`, and run
-      `cd android && ./gradlew bundleRelease` — output at
+- [x] App built as an **AAB**: release keystore generated at repo root (`release.keystore`,
+      gitignored) with credentials in `keystore.properties` (gitignored — **back both of these
+      up somewhere safe, e.g. a password manager; losing the keystore means you can't sign
+      future updates the same way, though Play App Signing lets you request a reset if you're
+      enrolled in it**). `android/app/build.gradle` reads them automatically. Build with:
+      `npx expo prebuild --platform android` (non-destructive — omit `--clean`, which would
+      wipe `android/app/build.gradle`'s signing block; re-add it from this file if you ever do
+      run `--clean`) then `cd android && ./gradlew bundleRelease` — output at
       `android/app/build/outputs/bundle/release/app-release.aab`
-- [ ] App icon 512×512 (PNG, no alpha) for the store listing
-- [ ] Feature graphic 1024×500 (PNG/JPG)
-- [ ] At least 2 phone screenshots (see §6)
-- [ ] Privacy policy URL hosted publicly (see §7)
+- [x] App icon 512×512 (PNG, no alpha): `store/icon-512.png`
+- [x] Feature graphic 1024×500 (PNG/JPG): `store/feature-graphic.png`
+- [ ] At least 2 phone screenshots (see §6 — existing set is stale, needs recapture)
+- [x] Privacy policy URL hosted publicly: https://saqibutm.github.io/Agro-Chain-NRPU/privacy.html
+- [ ] **⚠️ `targetSdkVersion` is 34 (Android 14), tied to Expo SDK 50's defaults.** As of this
+      writing, Play requires new apps/updates to target API 35+ (API 36 becomes mandatory
+      31 Aug 2026) — a fresh submission at API 34 is very likely to be rejected or blocked
+      outright. Bumping this isn't a one-line change: it means either the `expo-build-properties`
+      plugin to force-compile against a newer SDK on top of Expo SDK 50 (untested combination —
+      RN 0.73's native modules were built/verified against API 34; API 35 also changes default
+      UI behavior like edge-to-edge display and predictive back gestures) or a full Expo SDK
+      upgrade (50 → 52+, which also touches the already-submitted iOS build's dependency tree).
+      **Needs a decision and real device/emulator testing before submitting — not done here.**
 
 ---
 
@@ -50,9 +62,12 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 >
 > **For supply chain participants**
 > • Sign in with just a mobile number — no email required
-> • Register wheat and sugarcane batches with one tap, with automatic GPS geotagging of the farm
+> • Farmers register batches in maund with automatic GPS geotagging; a printable/shareable QR
+>   label is generated per batch and refreshed with current status at every step
+> • Mill operators can register multiple mill locations and send lab samples for testing
 > • Transfer custody securely; every handover is geotagged and time-stamped
-> • Record laboratory quality tests (moisture, protein, gluten, contamination) — labs only
+> • Record laboratory quality tests — moisture/protein/gluten for wheat, Brix/Pol/Purity for
+>   sugarcane, plus contamination checks — labs only
 > • Live dashboard with KPIs: batches created, in transit, delivered, quality pass-rate
 > • Built-in fraud detection: weight-variance, extraction-ratio, duplicate-QR and quality-failure alerts
 >
@@ -77,12 +92,15 @@ Declare the following based on what the app actually collects:
 | Data type | Collected? | Shared? | Purpose | Notes |
 |-----------|-----------|---------|---------|-------|
 | **Location (approximate & precise)** | Yes | No | App functionality (geotag harvests/transfers) | Used only when recording a batch/transfer |
-| **Photos / Camera** | No (camera used live, not stored) | No | App functionality (QR scanning) | Camera frames are not collected/stored |
-| Personal info (name, user ID) | Yes (if auth enabled) | No | Account management | Mobile number and entity/farmer/mill IDs entered by user |
-| App activity (in-app actions) | Yes | No | Analytics / app functionality | Supply-chain transactions |
+| **Camera** | No (used live for QR scanning, not stored) | No | App functionality (QR scanning) | Camera frames are not collected/stored |
+| **Photos** | Yes (optional) | No | App functionality (profile picture) | Only if the user chooses to set a profile picture in Settings |
+| Personal info (name, user ID) | Yes | No | Account management | Mobile number and entity/farmer/mill IDs entered by user |
+| App activity (in-app actions) | Yes | No | App functionality | Supply-chain transactions (batches, transfers, quality tests) |
 
 - **Encryption in transit:** Yes (HTTPS to the Supabase backend).
-- **Data deletion:** Provide a contact/method for users to request deletion.
+- **Data deletion:** In-app, self-service — Settings → Delete Account. Anonymizes (doesn't
+  delete) the user's supply-chain records to preserve the audit trail for other participants;
+  see the Privacy Policy §8 for details.
 - **Camera permission justification:** "Used to scan product QR codes for supply-chain verification." (matches `app.json`)
 - **Location permission justification:** "Used to geotag farm harvests and custody transfers." (matches `app.json`)
 
@@ -94,30 +112,36 @@ Declare the following based on what the app actually collects:
 
 Requirements: PNG/JPG, 16:9 or 9:16, each side 320–3840 px. Minimum **2**, recommended **4–8**.
 
-Suggested set (capture from the running app, both languages if possible):
-1. **Home dashboard** — KPI cards (batches, in transit, pass rate, quality flags)
-2. **Add Crop** — batch registration form with GPS capture
+`store/screenshots/en/` and `store/screenshots/ur/` hold a set from **6 June 2026** — predates
+almost every feature added since (maund entry, crop-type selector, mill locations, sample
+sending, sugarcane quality fields, About page, account deletion). Recapture natively before
+submitting:
+1. **Farmer dashboard** — KPI cards (batches, in transit, pass rate, quality flags)
+2. **New Batch** — crop-type selector (wheat/sugarcane), maund quantity entry, GPS capture
 3. **QR Scanner** — scanning a product
 4. **Product Journey** — verified badge + farm-to-shelf timeline
 5. **Map** — GPS custody route with markers and polyline
-6. **Fraud Alerts** — severity-coded alert list
-7. **Settings** — English/Urdu language toggle (shows localization)
+6. **Lab Dashboard** — pending sample inbox + commodity-appropriate quality fields
+7. **Fraud Alerts** — severity-coded alert list
+8. **Settings** — English/Urdu language toggle (shows localization)
 
-How to capture: run `cd android && ./gradlew assembleRelease` (APK) or `npx expo start` on a device/emulator, then take device screenshots.
+How to capture: boot an AVD (`emulator -avd Pixel_8_Pro`), install a release or debug build,
+navigate each screen, and `adb exec-out screencap -p > shot.png` (both platform SDK tools live
+under the Android SDK's `emulator/` and `platform-tools/` directories).
 
 ---
 
 ## 7. Privacy policy (required)
 
-A public URL is mandatory because the app requests Location and Camera permissions.
-Host a page covering:
-- What data is collected (location, mobile number, supply-chain records) and why
-- That camera is used only for live QR scanning and frames are not stored
-- That data is stored in a secure, role-based traceability database
-- How users contact you to request data deletion
-- Contact email
+Hosted at **https://saqibutm.github.io/Agro-Chain-NRPU/privacy.html** (source: `privacy.html`
+at the repo root, published via GitHub Pages). Covers what data is collected and why, that
+camera is used only for live QR scanning and frames aren't stored, the secure role-based
+database model, in-app self-service account deletion, and contact details.
 
-Add the URL in **Play Console → App content → Privacy policy** and in the store listing.
+Add the URL in **Play Console → App content → Privacy policy** and in the store listing. A
+support contact is also required in **Play Console → Store presence → Store settings** — use
+**https://saqibutm.github.io/Agro-Chain-NRPU/support.html** (same GitHub Pages site) or
+`saqibutm@outlook.com`.
 
 ---
 
@@ -137,20 +161,27 @@ Complete the **App content → Content rating** questionnaire. AgroChain has no 
 6. Submit for review (first review can take a few days).
 
 For subsequent releases: bump `version` and `android.versionCode` in `app.json`, rebuild
-(`npx expo prebuild --platform android --clean && cd android && ./gradlew bundleRelease`),
-and upload the new AAB.
+(`npx expo prebuild --platform android && cd android && ./gradlew bundleRelease` — **no
+`--clean`**, which would wipe the hand-edited signing block in `android/app/build.gradle`;
+see §1), and upload the new AAB.
 
 ---
 
 ## 10. Release notes (v1.0.0)
 
 > First release of AgroChain.
-> • Farm-to-consumer traceability for wheat & sugar
+> • Farm-to-consumer traceability for wheat & sugarcane
+> • Farmers weigh in maund (mills weigh in kg downstream); a printable/shareable QR label is
+>   generated per batch and refreshed with current status at every step
+> • Mill operators can register multiple mill locations and send lab samples for testing
+> • Lab quality tests use crop-appropriate metrics — moisture/protein/gluten for wheat,
+>   Brix/Pol/Purity for sugarcane
 > • QR scanning with full product journey and GPS route map
 > • Quality reports, fraud alerts, and live KPI dashboard
 > • Offline-first capture with automatic sync
 > • English and Urdu support
 > • Sign in or create an account with just a mobile number — no email required
+> • Optional profile picture; delete your account at any time from Settings
 
 ---
 
@@ -164,5 +195,9 @@ and upload the new AAB.
 | Version code | `app.json` → `android.versionCode` | bump manually each release |
 | Camera permission + reason | `app.json` | ✓ |
 | Location permission + reason | `app.json` | ✓ |
-| Release signing | `android/app/build.gradle` → `signingConfigs.release` | needs keystore generated once |
-| Credentials gitignored | `.gitignore` | ✓ |
+| Release signing | `android/app/build.gradle` → `signingConfigs.release` | ✓ (reads `/keystore.properties`) |
+| Credentials gitignored | `.gitignore` (`release.keystore`, `keystore.properties`, `/android/`) | ✓ |
+| `SYSTEM_ALERT_WINDOW` permission | `app.json` → `android.blockedPermissions` | ✓ stripped (unused, was pulled in by Expo's base template) |
+| `allowBackup` | `plugins/withAndroidDisableBackup.js` | ✓ disabled (offline sync queue/cache aren't Keystore-encrypted like the session token) |
+| ProGuard/code shrinking | `android/app/build.gradle` → `enableProguardInReleaseBuilds` | off by default — release AAB is unminified. Not a Play Store requirement, but larger app size / no obfuscation; enabling it needs real-device testing first (RN release builds can crash if `proguard-rules.pro` misses a reflection-based native module) |
+| `READ/WRITE_EXTERNAL_STORAGE` permissions | pulled in by `expo-image-picker` | expected (profile picture feature) — make sure the Data Safety form's declared permissions match this, not just `app.json`'s explicit list |
