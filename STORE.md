@@ -18,7 +18,7 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
       `android/app/build/outputs/bundle/release/app-release.aab`
 - [x] App icon 512×512 (PNG, no alpha): `store/icon-512.png`
 - [x] Feature graphic 1024×500 (PNG/JPG): `store/feature-graphic.png`
-- [ ] At least 2 phone screenshots (see §6 — existing set is stale, needs recapture)
+- [x] At least 2 phone screenshots (see §6 — `en/` set recaptured 16 Jul 2026; `ur/` still stale)
 - [x] Privacy policy URL hosted publicly: https://saqibutm.github.io/Agro-Chain-NRPU/privacy.html
 - [x] `targetSdkVersion`/`compileSdkVersion` 36 (`app.json` → `expo-build-properties`), ahead of
       Play's mandatory 31 Aug 2026 API 36 deadline.
@@ -111,22 +111,32 @@ Declare the following based on what the app actually collects:
 
 Requirements: PNG/JPG, 16:9 or 9:16, each side 320–3840 px. Minimum **2**, recommended **4–8**.
 
-`store/screenshots/en/` and `store/screenshots/ur/` hold a set from **6 June 2026** — predates
-almost every feature added since (maund entry, crop-type selector, mill locations, sample
-sending, sugarcane quality fields, About page, account deletion). Recapture natively before
-submitting:
-1. **Farmer dashboard** — KPI cards (batches, in transit, pass rate, quality flags)
-2. **New Batch** — crop-type selector (wheat/sugarcane), maund quantity entry, GPS capture
-3. **QR Scanner** — scanning a product
-4. **Product Journey** — verified badge + farm-to-shelf timeline
-5. **Map** — GPS custody route with markers and polyline
-6. **Lab Dashboard** — pending sample inbox + commodity-appropriate quality fields
-7. **Fraud Alerts** — severity-coded alert list
-8. **Settings** — English/Urdu language toggle (shows localization)
+`store/screenshots/en/` was recaptured natively on 16 Jul 2026 (7 screens, replacing the stale
+6 June set):
+1. **Farmer dashboard** — KPI cards (batches, in transit, delivered, quality flags)
+2. **New Batch** — crop-type selector (wheat/sugarcane), maund quantity entry
+3. **QR Scanner** — scanner UI (emulator has no live camera feed, so this shows the frame/chrome
+   only, not an actual scan — fine for a store screenshot but worth a real-device retake if one
+   becomes available)
+4. **Mill Operator dashboard** — role-specific KPIs (pass rate) + quick actions (My Mills, Add
+   Mill, Send Sample)
+5. **Fraud Alerts** — severity-coded alert list
+6. **Consumer dashboard** — role-specific KPIs + quick actions (Product Journey, QR Scanner)
+7. **Settings** — English/Urdu language toggle (shows localization)
+
+Product Journey, Map, and Lab Dashboard from the original 8-screen plan were swapped out in
+favor of showing role diversity (Mill/Consumer dashboards) — revisit if the full original set is
+still wanted. All 7 are 1535×2992 RGB (no alpha), padded with white side-bars from the native
+1344×2992 emulator capture to satisfy Play's 2:1 max aspect-ratio rule (raw captures are ~2.23:1
+and get rejected as-is).
+
+`store/screenshots/ur/` still holds the stale 6 June set — needs the same recapture treatment
+(Settings → اردو) before submitting the Urdu store listing.
 
 How to capture: boot an AVD (`emulator -avd Pixel_8_Pro`), install a release or debug build,
 navigate each screen, and `adb exec-out screencap -p > shot.png` (both platform SDK tools live
-under the Android SDK's `emulator/` and `platform-tools/` directories).
+under the Android SDK's `emulator/` and `platform-tools/` directories). Pad/flatten before
+uploading — see the note above on aspect ratio.
 
 ---
 
