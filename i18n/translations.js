@@ -203,6 +203,7 @@ export const translations = {
     millBatchReceived: "Batch transferred to mill.",
     millConfirmed: "Mill ID recorded. Processing complete.",
     fillNumericFields: "At least one of Moisture, Protein, or Gluten is required.",
+    fillNumericFieldsSugarcane: "At least one of Brix, Pol, or Purity is required.",
     offlineQueue: "No connection — your record was queued and will sync automatically.",
 
     // Product detail
@@ -429,6 +430,7 @@ export const translations = {
     millBatchReceived: "بیچ مل کو منتقل ہو گیا۔",
     millConfirmed: "مل شناخت ریکارڈ ہو گئی۔ پروسیسنگ مکمل۔",
     fillNumericFields: "نمی، پروٹین، یا گلوٹین میں سے کم از کم ایک ضروری ہے۔",
+    fillNumericFieldsSugarcane: "بریکس، پول، یا خالص پن میں سے کم از کم ایک ضروری ہے۔",
     offlineQueue: "کنیکشن نہیں — آپ کا ریکارڈ محفوظ ہو گیا اور خود بخود ہم آہنگ ہو جائے گا۔",
 
     // Product detail

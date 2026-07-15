@@ -95,11 +95,13 @@ export async function dispatch(action, payload) {
       });
       if (sErr) throw _dispatchError(sErr);
       // The batch is now (at least partly) with a lab for testing — error is
-      // non-fatal; the sample transfer itself is already recorded.
-      const { error: uErr } = await supabase
-        .from("wheat_batches")
-        .update({ status: "Processing" })
-        .eq("wheat_batch_id", payload.wheatBatchID);
+      // non-fatal; the sample transfer itself is already recorded. Goes
+      // through the advance_batch_status RPC (not a direct .update()) since
+      // wheat_batches no longer has a general UPDATE policy — see schema.sql.
+      const { error: uErr } = await supabase.rpc("advance_batch_status", {
+        p_wheat_batch_id: payload.wheatBatchID,
+        p_new_status: "Processing",
+      });
       if (uErr) console.warn("batch status update failed:", uErr.message);
       return { success: true };
     }
@@ -115,11 +117,12 @@ export async function dispatch(action, payload) {
         created_by:     createdBy,
       });
       if (tErr) throw _dispatchError(tErr);
-      // Update batch status — error is non-fatal; transfer is already recorded.
-      const { error: uErr } = await supabase
-        .from("wheat_batches")
-        .update({ status: "In Transit" })
-        .eq("wheat_batch_id", payload.wheatBatchID);
+      // Update batch status — error is non-fatal; transfer is already
+      // recorded. See the RPC note above.
+      const { error: uErr } = await supabase.rpc("advance_batch_status", {
+        p_wheat_batch_id: payload.wheatBatchID,
+        p_new_status: "In Transit",
+      });
       if (uErr) console.warn("batch status update failed:", uErr.message);
       return { success: true };
     }
@@ -150,10 +153,11 @@ export async function dispatch(action, payload) {
       // inbox, not a free-typed subject ID) — move it out of the pending list.
       // Non-fatal: the quality report itself is already recorded.
       if (payload.sampleID) {
-        const { error: sErr } = await supabase
-          .from("sample_transfers")
-          .update({ status: "Tested" })
-          .eq("sample_id", payload.sampleID);
+        // mark_sample_tested RPC (not a direct .update()) — only the lab the
+        // sample was actually addressed to can flip it; see schema.sql.
+        const { error: sErr } = await supabase.rpc("mark_sample_tested", {
+          p_sample_id: payload.sampleID,
+        });
         if (sErr) console.warn("sample status update failed:", sErr.message);
       }
       return { success: true };
@@ -230,11 +234,9 @@ export async function deleteMillLocation(id) {
 // registered username instead of free-typing it (and risking a typo that
 // silently misroutes the sample to nobody's inbox).
 export async function queryLabDirectory() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("role", "lab")
-    .order("username", { ascending: true });
+  // Via the list_labs() RPC, not a direct profiles select — profiles no
+  // longer has a broad read policy (it holds phone numbers). See schema.sql.
+  const { data, error } = await supabase.rpc("list_labs");
   if (error) throw new Error(error.message);
   return { labs: data.map((p) => p.username) };
 }

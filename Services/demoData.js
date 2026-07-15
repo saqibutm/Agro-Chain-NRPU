@@ -324,7 +324,7 @@ export function getTrackingItems() {
   return ALL_PRODUCTS.map((p) => ({
     id: p.productID,
     name: p.currentHolder,
-    stage: p.commodity === "wheat" ? "Wheat" : "Sugar",
+    commodity: p.commodity,
     date: p.productionDate,
     product: p,
   }));

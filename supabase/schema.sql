@@ -181,8 +181,10 @@ alter table public.sample_transfers add constraint sample_transfers_quantity_che
 alter table public.quality_reports add column if not exists sample_id text references public.sample_transfers(sample_id);
 
 -- ── Row-level security ────────────────────────────────────────────────────────
--- For a research demo: allow anon read + authenticated write.
--- Tighten per-role in production.
+-- Batch/transfer/quality/issue/sample rows are intentionally public-read (QR
+-- scan traceability works with no login). profiles is the exception —
+-- profiles.username is the user's phone number, so it gets its own,
+-- much narrower policy below instead of a blanket public-read.
 alter table public.profiles       enable row level security;
 alter table public.wheat_batches  enable row level security;
 alter table public.batch_transfers enable row level security;
@@ -192,28 +194,122 @@ alter table public.mills          enable row level security;
 alter table public.sample_transfers enable row level security;
 
 -- Public read
-create policy "public read profiles"        on public.profiles        for select using (true);
+drop policy if exists "public read profiles" on public.profiles;
+drop policy if exists "public read wheat_batches" on public.wheat_batches;
 create policy "public read wheat_batches"   on public.wheat_batches   for select using (true);
+drop policy if exists "public read batch_transfers" on public.batch_transfers;
 create policy "public read batch_transfers" on public.batch_transfers  for select using (true);
+drop policy if exists "public read quality_reports" on public.quality_reports;
 create policy "public read quality_reports" on public.quality_reports  for select using (true);
+drop policy if exists "public read consumer_issues" on public.consumer_issues;
 create policy "public read consumer_issues" on public.consumer_issues  for select using (true);
+drop policy if exists "public read mills" on public.mills;
 create policy "public read mills"           on public.mills           for select using (true);
+
+-- profiles: a user may only read their own row directly (it holds a phone
+-- number). Other users' info needed by the app (e.g. picking a destination
+-- lab by username in Screens/Mill/SendSample.js) goes through the narrow
+-- list_labs() RPC further down instead of a broad SELECT policy.
+drop policy if exists "own read profiles" on public.profiles;
+create policy "own read profiles" on public.profiles for select using (auth.uid() = id);
+drop policy if exists "public read sample_transfers" on public.sample_transfers;
 create policy "public read sample_transfers" on public.sample_transfers for select using (true);
 
--- Authenticated write
-create policy "auth insert wheat_batches"   on public.wheat_batches   for insert with check (auth.role() = 'authenticated');
-create policy "auth update wheat_batches"   on public.wheat_batches   for update using  (auth.role() = 'authenticated');
-create policy "auth insert batch_transfers" on public.batch_transfers  for insert with check (auth.role() = 'authenticated');
-create policy "auth insert quality_reports" on public.quality_reports  for insert with check (auth.role() = 'authenticated');
-create policy "auth insert consumer_issues" on public.consumer_issues  for insert with check (auth.role() = 'authenticated');
-create policy "auth insert sample_transfers" on public.sample_transfers for insert with check (auth.role() = 'authenticated');
-create policy "auth update sample_transfers" on public.sample_transfers for update using  (auth.role() = 'authenticated');
+-- Authenticated write — scoped to (a) the role that legitimately performs
+-- each action and (b) always self-attributing created_by/reported_by, so a
+-- modified client can't insert on someone else's behalf or forge a lab
+-- certification / farmer batch it never actually did. There is no general
+-- UPDATE policy on wheat_batches or sample_transfers anymore (a blanket
+-- "any authenticated user" USING(true) let anyone rewrite anyone else's
+-- batch quantity, GPS, QR code, or status) — the only supported updates are
+-- the narrow advance_batch_status()/mark_sample_tested() RPCs further down,
+-- which touch only the status column.
+drop policy if exists "auth insert wheat_batches" on public.wheat_batches;
+drop policy if exists "farmer insert wheat_batches" on public.wheat_batches;
+create policy "farmer insert wheat_batches" on public.wheat_batches for insert
+  with check (
+    created_by = auth.uid()
+    and exists (select 1 from public.profiles where id = auth.uid() and role = 'farmer')
+  );
+drop policy if exists "auth update wheat_batches" on public.wheat_batches;
+
+drop policy if exists "auth insert batch_transfers" on public.batch_transfers;
+drop policy if exists "mill insert batch_transfers" on public.batch_transfers;
+create policy "mill insert batch_transfers" on public.batch_transfers for insert
+  with check (
+    created_by = auth.uid()
+    and exists (select 1 from public.profiles where id = auth.uid() and role = 'mill')
+  );
+
+drop policy if exists "auth insert quality_reports" on public.quality_reports;
+drop policy if exists "lab insert quality_reports" on public.quality_reports;
+create policy "lab insert quality_reports" on public.quality_reports for insert
+  with check (
+    created_by = auth.uid()
+    and exists (select 1 from public.profiles where id = auth.uid() and role = 'lab')
+  );
+
+drop policy if exists "auth insert consumer_issues" on public.consumer_issues;
+create policy "auth insert consumer_issues" on public.consumer_issues for insert
+  with check (reported_by = auth.uid());
+
+drop policy if exists "auth insert sample_transfers" on public.sample_transfers;
+drop policy if exists "mill insert sample_transfers" on public.sample_transfers;
+create policy "mill insert sample_transfers" on public.sample_transfers for insert
+  with check (
+    created_by = auth.uid()
+    and exists (select 1 from public.profiles where id = auth.uid() and role = 'mill')
+  );
+drop policy if exists "auth update sample_transfers" on public.sample_transfers;
 
 -- Mills: only the registering operator can add/remove their own locations
 -- (unlike the tables above, this one has a real owner, so it isn't just
 -- "any authenticated user").
+drop policy if exists "owner insert mills" on public.mills;
 create policy "owner insert mills" on public.mills for insert with check (auth.uid() = owner_id);
+drop policy if exists "owner delete mills" on public.mills;
 create policy "owner delete mills" on public.mills for delete using  (auth.uid() = owner_id);
+
+-- ── Status-transition RPCs ────────────────────────────────────────────────────
+-- Replace the old blanket UPDATE policies on wheat_batches/sample_transfers
+-- (see above): these only ever touch the one column Services/api.js actually
+-- needs to move forward, so a modified client can't use the same access to
+-- rewrite a batch's quantity, GPS, QR code, or commodity.
+create or replace function public.advance_batch_status(p_wheat_batch_id text, p_new_status text)
+returns void language plpgsql security definer as $$
+begin
+  if p_new_status not in ('In Transit', 'Processing', 'Delivered') then
+    raise exception 'Invalid status transition: %', p_new_status;
+  end if;
+  update public.wheat_batches set status = p_new_status where wheat_batch_id = p_wheat_batch_id;
+end;
+$$;
+revoke all on function public.advance_batch_status(text, text) from public;
+grant execute on function public.advance_batch_status(text, text) to authenticated;
+
+-- Only the lab a sample was actually addressed to (to_lab_username) can flip
+-- it to Tested — previously any authenticated user could mark any sample
+-- (anyone's) as tested and make it disappear from the real lab's queue.
+create or replace function public.mark_sample_tested(p_sample_id text)
+returns void language plpgsql security definer as $$
+begin
+  update public.sample_transfers
+  set status = 'Tested'
+  where sample_id = p_sample_id
+    and to_lab_username = (select username from public.profiles where id = auth.uid());
+end;
+$$;
+revoke all on function public.mark_sample_tested(text) from public;
+grant execute on function public.mark_sample_tested(text) to authenticated;
+
+-- Lets Screens/Mill/SendSample.js populate a "destination lab" picker by
+-- username without needing a broad profiles SELECT policy (see above).
+create or replace function public.list_labs()
+returns table(username text) language sql security definer stable as $$
+  select username from public.profiles where role = 'lab' order by username;
+$$;
+revoke all on function public.list_labs() from public;
+grant execute on function public.list_labs() to authenticated;
 
 -- ── Avatar update ─────────────────────────────────────────────────────────────
 -- No general "update own profile" RLS policy: that would let a user rewrite

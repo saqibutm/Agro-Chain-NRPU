@@ -1,6 +1,6 @@
 # Privacy Policy — AgroChain
 
-**Last updated:** 7 June 2026
+**Last updated:** 15 July 2026
 
 AgroChain ("the App", "we", "us") provides farm-to-consumer traceability for wheat and
 sugarcane supply chains in Pakistan using a secure, role-based database. This policy
@@ -8,7 +8,7 @@ explains what data we collect, why, and your rights. By using AgroChain you agre
 this policy.
 
 > **Contact:** Email saqibutm@outlook.com or WhatsApp +92 300 1750077
-> **Data controller:** _<add your organization name and address>_
+> **Data controller:** AgroChain Research Project — NRPU, Pakistan
 
 ---
 
@@ -155,4 +155,4 @@ For any privacy questions or data requests:
 
 - **Email:** saqibutm@outlook.com
 - **WhatsApp:** +92 300 1750077
-- **Address:** _<add your organization's postal address>_
+- **Address:** AgroChain Research Project, NRPU, Pakistan

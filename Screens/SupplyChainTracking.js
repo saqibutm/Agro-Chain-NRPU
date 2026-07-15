@@ -87,7 +87,7 @@ const SupplyChainTracking = ({ navigation }) => {
                         >
                             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: height * 0.01, paddingBottom: height * 0.008 }}>
                                 <View>
-                                    <Text style={{ fontWeight: "600", fontSize: FontSize.F16 }}>{item.stage} {item.id}</Text>
+                                    <Text style={{ fontWeight: "600", fontSize: FontSize.F16 }}>{item.commodity ? t(item.commodity) : item.stage} {item.id}</Text>
                                     <Text style={{ fontWeight: "700", fontSize: FontSize.F16, color: "gray" }}>{t("companyName")}: {item.name}</Text>
                                 </View>
                                 <Text style={{ fontWeight: "600", fontSize: FontSize.F14 }}>{t("date")}: {item.date}</Text>

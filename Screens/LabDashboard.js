@@ -121,7 +121,7 @@ const LabDashboard = ({ navigation, route }) => {
 			? (form.brix || form.pol || form.purity)
 			: (form.moisture || form.protein || form.gluten);
 		if (!numericFieldsFilled) {
-			Alert.alert(t("recordQualityTest"), t("fillNumericFields"));
+			Alert.alert(t("recordQualityTest"), t(isSugarcane ? "fillNumericFieldsSugarcane" : "fillNumericFields"));
 			return;
 		}
 		setSubmitting(true);
