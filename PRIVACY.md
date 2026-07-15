@@ -125,13 +125,13 @@ Data is **encrypted in transit** (HTTPS to our servers).
 - **Permissions:** You can grant or revoke Camera and Location permissions at any time in
   your device settings. Revoking them disables the related features (QR scanning, geotagging)
   but you can still use the rest of the App.
-- **Access / correction / deletion:** You may request access to, correction of, or deletion
-  of your personal data by contacting us using the details above. Supply-chain event
-  records are not self-service editable in the App (see §4), but we can correct or remove
-  them on request where legitimately required; where full deletion isn't appropriate (e.g.
-  it would break another party's audit trail) we will dissociate your personal
-  identifiers instead.
-- **Account closure:** Contact us to deactivate your account.
+- **Account deletion:** Delete your account and profile data at any time, in-app, from
+  **Settings → Delete Account** — no need to contact us. Your supply-chain records are
+  anonymized (not deleted) to preserve the audit trail for other participants, per §4.
+- **Access / correction:** You may request access to or correction of your personal data
+  by contacting us using the details above. Supply-chain event records are not
+  self-service editable in the App (see §4), but we can correct them on request where
+  legitimately required.
 
 ---
 
