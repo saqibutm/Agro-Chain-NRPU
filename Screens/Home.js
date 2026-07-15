@@ -18,7 +18,7 @@ const ROLE_ACTIONS = {
         { labelKey: "newBatch",          screen: "AddCrop"       },
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
-        { labelKey: "faqs",              screen: "FAQs"          },
+        { labelKey: "faqs",              screen: "FAQs", params: { scope: "role" } },
     ],
     mill:      [
         { labelKey: "myMills",           screen: "ManageMills"   },
@@ -26,25 +26,25 @@ const ROLE_ACTIONS = {
         { labelKey: "sendSample",        screen: "SendSample"    },
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
-        { labelKey: "faqs",              screen: "FAQs"          },
+        { labelKey: "faqs",              screen: "FAQs", params: { scope: "role" } },
     ],
     lab:       [
         { labelKey: "recordQualityTest", screen: "LabDashboard"  },
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
-        { labelKey: "faqs",              screen: "FAQs"          },
+        { labelKey: "faqs",              screen: "FAQs", params: { scope: "role" } },
     ],
     regulator: [
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "camera",            screen: "CameraScreen"  },
-        { labelKey: "faqs",              screen: "FAQs"          },
+        { labelKey: "faqs",              screen: "FAQs", params: { scope: "role" } },
     ],
     consumer:  [
         { labelKey: "qrScanner",         screen: "QRScanner"     },
         { labelKey: "fraudAlerts",       screen: "FraudAlerts"   },
         { labelKey: "productJourney",    screen: "ProductJourney"},
-        { labelKey: "faqs",              screen: "FAQs"          },
+        { labelKey: "faqs",              screen: "FAQs", params: { scope: "role" } },
     ],
 };
 
@@ -217,7 +217,7 @@ const Home = ({ navigation }) => {
 							key={i}
 							activeOpacity={0.8}
 							style={styles.actionBtn}
-							onPress={() => navigation.navigate(a.screen)}
+							onPress={() => navigation.navigate(a.screen, a.params)}
 						>
 							<Text style={styles.actionText}>{a.label}</Text>
 						</TouchableOpacity>

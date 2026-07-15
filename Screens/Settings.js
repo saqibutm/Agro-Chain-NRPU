@@ -144,7 +144,10 @@ const Settings = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={[styles.btn, { marginTop: height * 0.03 }]} onPress={() => navigation.navigate("About")}>
+            <TouchableOpacity style={[styles.btn, { marginTop: height * 0.03 }]} onPress={() => navigation.navigate("FAQs", { scope: "general" })}>
+                <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("faqs")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate("About")}>
                 <Text style={{ color: "green", fontSize: FontSize.F19, fontWeight: "600" }}>{t("about")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
