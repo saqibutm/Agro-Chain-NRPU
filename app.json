@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.agrochain.app",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSCameraUsageDescription": "AgroChain uses the camera to scan product QR codes and to take a profile picture.",
         "NSLocationWhenInUseUsageDescription": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability.",
