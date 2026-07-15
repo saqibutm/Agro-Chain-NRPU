@@ -111,24 +111,23 @@ Declare the following based on what the app actually collects:
 
 Requirements: PNG/JPG, 16:9 or 9:16, each side 320–3840 px. Minimum **2**, recommended **4–8**.
 
-`store/screenshots/en/` was recaptured natively on 16 Jul 2026 (7 screens, replacing the stale
+`store/screenshots/en/` was recaptured natively on 16 Jul 2026 (6 screens, replacing the stale
 6 June set):
 1. **Farmer dashboard** — KPI cards (batches, in transit, delivered, quality flags)
 2. **New Batch** — crop-type selector (wheat/sugarcane), maund quantity entry
-3. **QR Scanner** — scanner UI (emulator has no live camera feed, so this shows the frame/chrome
-   only, not an actual scan — fine for a store screenshot but worth a real-device retake if one
-   becomes available)
-4. **Mill Operator dashboard** — role-specific KPIs (pass rate) + quick actions (My Mills, Add
+3. **Mill Operator dashboard** — role-specific KPIs (pass rate) + quick actions (My Mills, Add
    Mill, Send Sample)
-5. **Fraud Alerts** — severity-coded alert list
-6. **Consumer dashboard** — role-specific KPIs + quick actions (Product Journey, QR Scanner)
-7. **Settings** — English/Urdu language toggle (shows localization)
+4. **Fraud Alerts** — severity-coded alert list
+5. **Consumer dashboard** — role-specific KPIs + quick actions (Product Journey, QR Scanner)
+6. **Settings** — English/Urdu language toggle (shows localization)
 
-Product Journey, Map, and Lab Dashboard from the original 8-screen plan were swapped out in
-favor of showing role diversity (Mill/Consumer dashboards) — revisit if the full original set is
-still wanted. All 7 are 1535×2992 RGB (no alpha), padded with white side-bars from the native
-1344×2992 emulator capture to satisfy Play's 2:1 max aspect-ratio rule (raw captures are ~2.23:1
-and get rejected as-is).
+QR Scanner was dropped (the emulator has no live camera feed, so it only showed empty scanner
+chrome, not an actual scan — worth adding back with a real-device capture if one becomes
+available). Product Journey, Map, and Lab Dashboard from the original 8-screen plan were swapped
+out in favor of showing role diversity (Mill/Consumer dashboards) — revisit if the full original
+set is still wanted. All 6 are 1535×2992 RGB (no alpha), padded with white side-bars from the
+native 1344×2992 emulator capture to satisfy Play's 2:1 max aspect-ratio rule (raw captures are
+~2.23:1 and get rejected as-is).
 
 `store/screenshots/ur/` still holds the stale 6 June set — needs the same recapture treatment
 (Settings → اردو) before submitting the Urdu store listing.
