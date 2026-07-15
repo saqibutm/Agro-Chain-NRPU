@@ -12,7 +12,7 @@ import { FontSize } from "../Abstracts/Theme";
 import { useI18n } from "../i18n/I18nContext";
 import { useSync } from "../Services/SyncContext";
 import { useAuth } from "../Services/AuthContext";
-import { Actions, queryPendingSamples } from "../Services/api";
+import { Actions, queryPendingSamples, queryWheatBatch } from "../Services/api";
 import { DEFAULT_USERNAME, DEMO_MODE } from "../Services/config";
 const { width, height } = Dimensions.get("window");
 
@@ -30,9 +30,13 @@ const LabDashboard = ({ navigation, route }) => {
 		labID: "",
 		testedBy: "",
 		testDate: "",
+		commodity: "wheat",
 		moisture: "",
 		protein: "",
 		gluten: "",
+		brix: "",
+		pol: "",
+		purity: "",
 		pesticides: false,
 		aflatoxin: false,
 		result: "Pass",
@@ -69,7 +73,7 @@ const LabDashboard = ({ navigation, route }) => {
 
 	const selectSample = (sample) => {
 		setSelectedSampleID(sample.sampleID);
-		set("subjectID", sample.wheatBatchID);
+		setForm((f) => ({ ...f, subjectID: sample.wheatBatchID, commodity: sample.commodity || "wheat" }));
 	};
 
 	// Filled in when returning from QRScanner (see the "Scan QR Code" button
@@ -82,6 +86,26 @@ const LabDashboard = ({ navigation, route }) => {
 		}
 	}, [route?.params?.scannedSubjectID]);
 
+	// Ad-hoc entry (typed or scanned subject ID, not picked from the pending-
+	// samples list above) doesn't come with a known commodity, so look the
+	// batch up to pick the right quality-test fields (wheat vs sugarcane).
+	// Best-effort: an unrecognized ID (e.g. a consumer-reported product, per
+	// quality_reports.subject_id's intentional lack of FK) just keeps
+	// whatever commodity was already selected.
+	useEffect(() => {
+		if (selectedSampleID || !form.subjectID || DEMO_MODE) return;
+		let cancelled = false;
+		const handle = setTimeout(async () => {
+			try {
+				const { batch } = await queryWheatBatch(username, form.subjectID);
+				if (!cancelled && batch?.commodity) set("commodity", batch.commodity);
+			} catch {
+				// Unrecognized ID — leave commodity as-is, lab can toggle manually.
+			}
+		}, 400);
+		return () => { cancelled = true; clearTimeout(handle); };
+	}, [form.subjectID, selectedSampleID, username]);
+
 	const handleConfirmDate = (date) => {
 		if (date) set("testDate", date.toISOString().split("T")[0]);
 		setDatePickerVisible(false);
@@ -92,7 +116,11 @@ const LabDashboard = ({ navigation, route }) => {
 			Alert.alert(t("recordQualityTest"), t("fillRequired"));
 			return;
 		}
-		if (!form.moisture && !form.protein && !form.gluten) {
+		const isSugarcane = form.commodity === "sugarcane";
+		const numericFieldsFilled = isSugarcane
+			? (form.brix || form.pol || form.purity)
+			: (form.moisture || form.protein || form.gluten);
+		if (!numericFieldsFilled) {
 			Alert.alert(t("recordQualityTest"), t("fillNumericFields"));
 			return;
 		}
@@ -104,9 +132,12 @@ const LabDashboard = ({ navigation, route }) => {
 			labID: form.labID,
 			testedBy: form.testedBy,
 			testDate: form.testDate,
-			moisture: parseFloat(form.moisture) || 0,
-			protein: parseFloat(form.protein) || 0,
-			gluten: parseFloat(form.gluten) || 0,
+			moisture: isSugarcane ? null : parseFloat(form.moisture) || 0,
+			protein: isSugarcane ? null : parseFloat(form.protein) || 0,
+			gluten: isSugarcane ? null : parseFloat(form.gluten) || 0,
+			brix: isSugarcane ? parseFloat(form.brix) || 0 : null,
+			pol: isSugarcane ? parseFloat(form.pol) || 0 : null,
+			purity: isSugarcane ? parseFloat(form.purity) || 0 : null,
 			pesticides: form.pesticides,
 			aflatoxin: form.aflatoxin,
 			result: form.result,
@@ -183,7 +214,7 @@ const LabDashboard = ({ navigation, route }) => {
 									<View style={{ flex: 1 }}>
 										<Text style={styles.sampleId}>{sample.sampleID}</Text>
 										<Text style={styles.sampleSub}>
-											{t("batchNumber")}: {sample.wheatBatchID}{sample.variety ? ` · ${sample.variety}` : ""}{sample.batchQuantity != null ? ` (${sample.batchQuantity}kg)` : ""}
+											{t("batchNumber")}: {sample.wheatBatchID} · {sample.commodity === "sugarcane" ? t("sugarcane") : t("wheat")}{sample.variety ? ` · ${sample.variety}` : ""}{sample.batchQuantity != null ? ` (${sample.batchQuantity}kg)` : ""}
 										</Text>
 										<Text style={styles.sampleSub}>
 											{t("from")}: {sample.fromMillID}{sample.quantity ? ` · ${sample.quantity}g` : ""}
@@ -245,9 +276,34 @@ const LabDashboard = ({ navigation, route }) => {
 					onCancel={() => setDatePickerVisible(false)}
 				/>
 
-				<Input {...inputProps} value={form.moisture} setValue={(e) => set("moisture", e)} placeholder={`${t("moisture")} (%)`} keyboardType="numeric" />
-				<Input {...inputProps} value={form.protein} setValue={(e) => set("protein", e)} placeholder={`${t("protein")} (%)`} keyboardType="numeric" />
-				<Input {...inputProps} value={form.gluten} setValue={(e) => set("gluten", e)} placeholder={`${t("gluten")} (%)`} keyboardType="numeric" />
+				{/* Crop type — picked up automatically from the selected sample or a
+				    recognized subject ID (see the lookup effect above); the lab can
+				    still override it, e.g. for an ad-hoc ID that lookup didn't
+				    resolve. Determines which quality metrics below apply. */}
+				<Text style={styles.fieldLabel}>{t("cropType")}</Text>
+				<Segmented
+					options={[
+						{ value: "wheat", label: t("wheat") },
+						{ value: "sugarcane", label: t("sugarcane") },
+					]}
+					value={form.commodity}
+					onChange={(v) => set("commodity", v)}
+					width={width * 0.86}
+				/>
+
+				{form.commodity === "sugarcane" ? (
+					<>
+						<Input {...inputProps} value={form.brix} setValue={(e) => set("brix", e)} placeholder={`${t("brix")} (%)`} keyboardType="numeric" />
+						<Input {...inputProps} value={form.pol} setValue={(e) => set("pol", e)} placeholder={`${t("pol")} (%)`} keyboardType="numeric" />
+						<Input {...inputProps} value={form.purity} setValue={(e) => set("purity", e)} placeholder={`${t("purity")} (%)`} keyboardType="numeric" />
+					</>
+				) : (
+					<>
+						<Input {...inputProps} value={form.moisture} setValue={(e) => set("moisture", e)} placeholder={`${t("moisture")} (%)`} keyboardType="numeric" />
+						<Input {...inputProps} value={form.protein} setValue={(e) => set("protein", e)} placeholder={`${t("protein")} (%)`} keyboardType="numeric" />
+						<Input {...inputProps} value={form.gluten} setValue={(e) => set("gluten", e)} placeholder={`${t("gluten")} (%)`} keyboardType="numeric" />
+					</>
+				)}
 
 				{/* Contamination toggles */}
 				<View style={styles.switchRow}>

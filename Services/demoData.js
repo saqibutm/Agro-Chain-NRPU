@@ -272,7 +272,7 @@ function buildSugarProducts(count) {
     const tested = journey.find((j) => j.stage === "Processing");
     products.push({
       productID,
-      commodity: "sugar",
+      commodity: "sugarcane",
       productName: pick(["Refined Sugar 1kg", "Refined Sugar 5kg", "Refined Sugar 10kg", "Commercial Sugar Bag 50kg"], r),
       productType: "Refined Sugar",
       variety: farmer.variety,
@@ -280,17 +280,25 @@ function buildSugarProducts(count) {
       season,
       qrCode: productID,
       qualityGrade: fail ? "C" : r() > 0.5 ? "A" : "B",
-      quality: tested ? {
-        result: fail ? "Failed" : "Passed",
-        moisture: +(0.03 + r() * 0.04).toFixed(2),
-        protein: 0,
-        gluten: 0,
-        icumsa: Math.round(40 + r() * 20),
-        pesticides: fail && r() > 0.5,
-        aflatoxin: false,
-        testedBy: lab,
-        hasReport: true,
-      } : { result: "—", hasReport: false },
+      quality: tested ? (() => {
+        // Sugarcane is tested for sugar content, not wheat's milling
+        // metrics — Brix (total soluble solids), Pol (sucrose %), and
+        // Purity (Pol/Brix ratio), taken from cane juice/raw sugar during
+        // milling.
+        const brix = +(19 + r() * 3).toFixed(1);
+        const purity = +(78 + r() * 14).toFixed(1);
+        const pol = +(brix * (purity / 100)).toFixed(1);
+        return {
+          result: fail ? "Failed" : "Passed",
+          brix,
+          pol,
+          purity,
+          pesticides: fail && r() > 0.5,
+          aflatoxin: false,
+          testedBy: lab,
+          hasReport: true,
+        };
+      })() : { result: "—", hasReport: false },
       farmOrigin: { farmer: farmer.name, district: farmer.district, province: "Punjab" },
       currentHolder: actors[journey.length - 1] || farmer.name,
       currentStage: reached,
@@ -331,6 +339,9 @@ export function getQualityReports() {
     moistureContent: p.quality.moisture,
     proteinContent: p.quality.protein,
     glutenContent: p.quality.gluten,
+    brixContent: p.quality.brix,
+    polContent: p.quality.pol,
+    purityContent: p.quality.purity,
     pesticidesDetected: !!p.quality.pesticides,
     aflatoxinDetected: !!p.quality.aflatoxin,
     testDate: p.productionDate,

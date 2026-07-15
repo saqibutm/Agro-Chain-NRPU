@@ -23,10 +23,13 @@ function buildProduct(product, movements, reports) {
 
     const quality = latest
         ? {
-            result: latest.result === "Fail" ? "Failed" : "Passed",
             moisture: latest.moistureContent ?? "—",
             protein: latest.proteinContent ?? "—",
             gluten: latest.glutenContent ?? "—",
+            brix: latest.brixContent ?? "—",
+            pol: latest.polContent ?? "—",
+            purity: latest.purityContent ?? "—",
+            result: latest.result === "Fail" ? "Failed" : "Passed",
             pesticides: !!latest.pesticidesDetected,
             aflatoxin: !!latest.aflatoxinDetected,
             testedBy: latest.testedBy,
@@ -38,6 +41,7 @@ function buildProduct(product, movements, reports) {
         productID: product.productID,
         productName: product.productName || product.productType || product.productID,
         flourType: product.productType,
+        commodity: product.commodity || "wheat",
         qualityGrade: latest?.grade || product.qualityGrade || "—",
         quality,
         farmOrigin: {
@@ -205,10 +209,20 @@ const ProductJourney = ({ navigation, route }) => {
                     </View>
                     {product.quality.hasReport ? (
                         <>
-                            <Text style={styles.qLine}>{t("moisture")}: {product.quality.moisture}%</Text>
-                            <Text style={styles.qLine}>{t("protein")}: {product.quality.protein}%</Text>
-                            {product.quality.gluten !== undefined && (
-                                <Text style={styles.qLine}>{t("gluten")}: {product.quality.gluten}%</Text>
+                            {product.commodity === "sugarcane" ? (
+                                <>
+                                    <Text style={styles.qLine}>{t("brix")}: {product.quality.brix}%</Text>
+                                    <Text style={styles.qLine}>{t("pol")}: {product.quality.pol}%</Text>
+                                    <Text style={styles.qLine}>{t("purity")}: {product.quality.purity}%</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Text style={styles.qLine}>{t("moisture")}: {product.quality.moisture}%</Text>
+                                    <Text style={styles.qLine}>{t("protein")}: {product.quality.protein}%</Text>
+                                    {product.quality.gluten !== undefined && (
+                                        <Text style={styles.qLine}>{t("gluten")}: {product.quality.gluten}%</Text>
+                                    )}
+                                </>
                             )}
                             <Text style={styles.qLine}>
                                 {t("pesticides")}: {product.quality.pesticides ? `${t("detected")} ⚠` : `${t("none")} ✓`}

@@ -149,6 +149,9 @@ reviewer knows where to find it if they check.
 >   label is generated per batch and refreshed with current status at every step
 > • Mill operators can register multiple mill locations and send lab samples
 >   (capped at 1kg) for testing, with a pending-samples inbox for the lab
+> • Lab quality tests now use crop-appropriate metrics — moisture/protein/gluten
+>   for wheat, Brix/Pol/Purity for sugarcane — detected automatically from the
+>   batch or sample being tested
 > • QR scanning with full product journey and GPS route map
 > • Quality reports, fraud alerts (including live weight-variance checks), and a
 >   live KPI dashboard

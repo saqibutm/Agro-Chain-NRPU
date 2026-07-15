@@ -134,6 +134,9 @@ export async function dispatch(action, payload) {
         moisture:   payload.moisture ?? null,
         protein:    payload.protein  ?? null,
         gluten:     payload.gluten   ?? null,
+        brix:       payload.brix     ?? null,
+        pol:        payload.pol      ?? null,
+        purity:     payload.purity   ?? null,
         pesticides: payload.pesticides || false,
         aflatoxin:  payload.aflatoxin  || false,
         result:     payload.result || "Pass",
@@ -241,7 +244,7 @@ export async function queryLabDirectory() {
 export async function queryPendingSamples(username) {
   const { data, error } = await supabase
     .from("sample_transfers")
-    .select("*, wheat_batches(variety, quantity)")
+    .select("*, wheat_batches(variety, quantity, commodity)")
     .eq("to_lab_username", username)
     .eq("status", "Sent")
     .order("created_at", { ascending: true });
@@ -255,6 +258,7 @@ export async function queryPendingSamples(username) {
       sentDate:     s.sent_date,
       variety:      s.wheat_batches?.variety || null,
       batchQuantity:s.wheat_batches?.quantity ?? null,
+      commodity:    s.wheat_batches?.commodity || "wheat",
     })),
   };
 }
@@ -452,9 +456,12 @@ function _mapReport(r) {
     labID:             r.lab_id,
     testedBy:          r.tested_by,
     testDate:          r.test_date,
-    moisture:          r.moisture,
-    protein:           r.protein,
-    gluten:            r.gluten,
+    moistureContent:   r.moisture,
+    proteinContent:    r.protein,
+    glutenContent:     r.gluten,
+    brixContent:       r.brix,
+    polContent:        r.pol,
+    purityContent:     r.purity,
     pesticidesDetected:r.pesticides,
     aflatoxinDetected: r.aflatoxin,
     result:            r.result,

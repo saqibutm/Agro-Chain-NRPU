@@ -82,6 +82,10 @@ create table if not exists public.batch_transfers (
 
 -- ── Quality reports ───────────────────────────────────────────────────────────
 -- Corresponds to RecordQualityTest chaincode transaction.
+-- moisture/protein/gluten are wheat's milling-quality metrics; brix/pol/purity
+-- are sugarcane's (sugar content, sucrose %, and their ratio) — the two sets
+-- are meaningless for the other commodity, so both are nullable and
+-- Screens/LabDashboard.js only shows the set matching the batch's commodity.
 create table if not exists public.quality_reports (
   id          uuid primary key default gen_random_uuid(),
   report_id   text unique not null,
@@ -94,6 +98,9 @@ create table if not exists public.quality_reports (
   moisture    numeric,
   protein     numeric,
   gluten      numeric,
+  brix        numeric,
+  pol         numeric,
+  purity      numeric,
   pesticides  boolean default false,
   aflatoxin   boolean default false,
   result      text not null default 'Pass' check (result in ('Pass','Fail')),
@@ -102,6 +109,11 @@ create table if not exists public.quality_reports (
   created_by  uuid references auth.users(id),
   created_at  timestamptz default now()
 );
+
+-- Re-running this file against a project created before brix/pol/purity existed.
+alter table public.quality_reports add column if not exists brix   numeric;
+alter table public.quality_reports add column if not exists pol    numeric;
+alter table public.quality_reports add column if not exists purity numeric;
 
 -- ── Consumer issues ───────────────────────────────────────────────────────────
 -- Corresponds to ReportConsumerIssue chaincode transaction.
