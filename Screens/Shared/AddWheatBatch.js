@@ -190,6 +190,7 @@ const AddWheatBatch = ({ navigation, idLabelKey, headerKey, submitLabelKey, vali
 				)}
 				<DateTimePickerModal
 					isVisible={isDatePickerVisible}
+					date={form.date_harvested ? new Date(form.date_harvested) : new Date()}
 					mode="date"
 					onConfirm={handleConfirm}
 					onCancel={hideDatePicker}

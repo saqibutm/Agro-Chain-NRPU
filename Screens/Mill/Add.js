@@ -272,6 +272,7 @@ const AddMill = ({ route, navigation }) => {
 				)}
 				<DateTimePickerModal
 					isVisible={datePickerKey !== null}
+					date={datePickerKey && form[datePickerKey] ? new Date(form[datePickerKey]) : new Date()}
 					mode="date"
 					onConfirm={handleConfirm}
 					onCancel={hideDatePicker}

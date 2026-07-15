@@ -259,6 +259,7 @@ const SendSample = ({ route, navigation }) => {
 				)}
 				<DateTimePickerModal
 					isVisible={datePickerVisible}
+					date={form.sent_date ? new Date(form.sent_date) : new Date()}
 					mode="date"
 					onConfirm={handleConfirmDate}
 					onCancel={() => setDatePickerVisible(false)}

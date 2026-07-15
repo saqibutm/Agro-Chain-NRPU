@@ -271,6 +271,7 @@ const LabDashboard = ({ navigation, route }) => {
 				)}
 				<DateTimePickerModal
 					isVisible={datePickerVisible}
+					date={form.testDate ? new Date(form.testDate) : new Date()}
 					mode="date"
 					onConfirm={handleConfirmDate}
 					onCancel={() => setDatePickerVisible(false)}
