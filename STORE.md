@@ -20,15 +20,14 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 - [x] Feature graphic 1024×500 (PNG/JPG): `store/feature-graphic.png`
 - [ ] At least 2 phone screenshots (see §6 — existing set is stale, needs recapture)
 - [x] Privacy policy URL hosted publicly: https://saqibutm.github.io/Agro-Chain-NRPU/privacy.html
-- [ ] **⚠️ `targetSdkVersion` is 34 (Android 14), tied to Expo SDK 50's defaults.** As of this
-      writing, Play requires new apps/updates to target API 35+ (API 36 becomes mandatory
-      31 Aug 2026) — a fresh submission at API 34 is very likely to be rejected or blocked
-      outright. Bumping this isn't a one-line change: it means either the `expo-build-properties`
-      plugin to force-compile against a newer SDK on top of Expo SDK 50 (untested combination —
-      RN 0.73's native modules were built/verified against API 34; API 35 also changes default
-      UI behavior like edge-to-edge display and predictive back gestures) or a full Expo SDK
-      upgrade (50 → 52+, which also touches the already-submitted iOS build's dependency tree).
-      **Needs a decision and real device/emulator testing before submitting — not done here.**
+- [x] `targetSdkVersion`/`compileSdkVersion` 36 (`app.json` → `expo-build-properties`), ahead of
+      Play's mandatory 31 Aug 2026 API 36 deadline.
+- [x] 16KB memory page-size compatibility (Play's already-passed hard submission requirement —
+      apps without it are rejected, not just warned). Required upgrading Expo SDK 50 → 56 (React
+      Native 0.77+ is the first version with 16KB-aligned native libraries). Verified two ways:
+      every `.so` in the built release AAB reports `0x4000` (16KB) ELF LOAD-segment alignment via
+      `llvm-readelf`, and the "Android App Compatibility" runtime warning that appeared
+      pre-upgrade no longer shows.
 
 ---
 
