@@ -7,7 +7,12 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Google P
 ## 1. Pre-requisites
 
 - [ ] Google Play Console developer account ($25 one-time) — https://play.google.com/console
-- [ ] App built as an **AAB**: `eas build --platform android --profile production`
+- [ ] App built as an **AAB**: `npx expo prebuild --platform android --clean`, then generate a
+      release keystore once (`keytool -genkeypair -v -keystore release.keystore -alias
+      agrochain -keyalg RSA -keysize 2048 -validity 10000`), wire it into
+      `android/app/build.gradle`'s `signingConfigs.release`, and run
+      `cd android && ./gradlew bundleRelease` — output at
+      `android/app/build/outputs/bundle/release/app-release.aab`
 - [ ] App icon 512×512 (PNG, no alpha) for the store listing
 - [ ] Feature graphic 1024×500 (PNG/JPG)
 - [ ] At least 2 phone screenshots (see §6)
@@ -98,7 +103,7 @@ Suggested set (capture from the running app, both languages if possible):
 6. **Fraud Alerts** — severity-coded alert list
 7. **Settings** — English/Urdu language toggle (shows localization)
 
-How to capture: run `eas build --profile preview` (APK) or `npx expo start` on a device/emulator, then take device screenshots.
+How to capture: run `cd android && ./gradlew assembleRelease` (APK) or `npx expo start` on a device/emulator, then take device screenshots.
 
 ---
 
@@ -125,13 +130,15 @@ Complete the **App content → Content rating** questionnaire. AgroChain has no 
 ## 9. Release flow
 
 1. **App content** section: complete Privacy policy, Data safety, Content rating, Target audience (adults), Ads (declare "No ads" unless you add them), Government app (declare if applicable).
-2. **Production → Create new release** (Google requires the **first** AAB to be uploaded manually here, even if using `eas submit` later).
-3. Upload the `.aab` from `eas build`.
+2. **Production → Create new release**.
+3. Upload the `.aab` from `./gradlew bundleRelease` (see §1).
 4. Add **release notes** (see §10).
 5. Set up **Internal testing** track first → test → then promote to **Production**.
 6. Submit for review (first review can take a few days).
 
-For subsequent releases: bump `version` in `app.json` (EAS auto-increments `versionCode`), rebuild, then `eas submit --platform android --profile production`.
+For subsequent releases: bump `version` and `android.versionCode` in `app.json`, rebuild
+(`npx expo prebuild --platform android --clean && cd android && ./gradlew bundleRelease`),
+and upload the new AAB.
 
 ---
 
@@ -154,8 +161,8 @@ For subsequent releases: bump `version` in `app.json` (EAS auto-increments `vers
 | App name | `app.json` → `expo.name` | AgroChain |
 | Package ID | `app.json` → `android.package` | com.agrochain.app |
 | Version name | `app.json` → `expo.version` | 1.0.0 |
-| Version code | managed remotely by EAS (`autoIncrement`) | auto |
+| Version code | `app.json` → `android.versionCode` | bump manually each release |
 | Camera permission + reason | `app.json` | ✓ |
 | Location permission + reason | `app.json` | ✓ |
-| Production AAB profile | `eas.json` → `build.production` | ✓ |
+| Release signing | `android/app/build.gradle` → `signingConfigs.release` | needs keystore generated once |
 | Credentials gitignored | `.gitignore` | ✓ |

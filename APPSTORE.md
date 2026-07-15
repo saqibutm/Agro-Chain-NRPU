@@ -8,8 +8,10 @@ Everything needed to publish **AgroChain** (`com.agrochain.app`) on the Apple Ap
 
 - [ ] Apple Developer Program ($99/year) — https://developer.apple.com/programs
 - [ ] App Store Connect app entry created with Bundle ID `com.agrochain.app`
-- [ ] App Store Connect API key (for `eas submit`)
-- [ ] iOS archive built: `eas build --platform ios --profile production`
+- [ ] Xcode signed into your Apple Developer account (Settings → Accounts), with automatic
+      signing enabled on the AgroChain target so it can generate the Distribution
+      certificate and App Store provisioning profile
+- [ ] iOS archive built via Xcode (`Product → Archive`) or `xcodebuild archive`
 - [ ] Tested on a real device via TestFlight before submitting
 
 ---
@@ -154,19 +156,17 @@ reviewer knows where to find it if they check.
 
 ## 12. Release flow
 
-1. `eas build --platform ios --profile production` — builds the signed `.ipa`
-2. `eas submit --platform ios --profile production` — uploads to App Store Connect
-3. Open App Store Connect → TestFlight → add internal testers → test
-4. App Store Connect → Prepare for Submission → fill all sections above
-5. Submit for Review (first review: 1–3 business days)
+1. `npx expo prebuild --platform ios --clean` — (re)generate the native `ios/` project from `app.json`
+2. Open `ios/AgroChain.xcworkspace` in Xcode, select **Any iOS Device**, then **Product → Archive**
+3. In the Organizer, **Distribute App → App Store Connect → Upload** (this builds and uploads
+   the `.ipa` in one step; a Distribution certificate + provisioning profile are generated
+   automatically the first time if automatic signing is enabled)
+4. Open App Store Connect → TestFlight → add internal testers → test
+5. App Store Connect → Prepare for Submission → fill all sections above
+6. Submit for Review (first review: 1–3 business days)
 
-For subsequent releases:
-```bash
-# Bump version in app.json, then:
-eas build --platform ios --profile production
-eas submit --platform ios --profile production
-```
-EAS auto-increments `buildNumber` via `autoIncrement: true`.
+For subsequent releases: bump `version` (and `ios.buildNumber`) in `app.json`, then repeat
+steps 1–3.
 
 ---
 
@@ -176,11 +176,10 @@ EAS auto-increments `buildNumber` via `autoIncrement: true`.
 |---------|-------|-------|
 | Bundle ID | `app.json` → `ios.bundleIdentifier` | com.agrochain.app |
 | Version | `app.json` → `expo.version` | 1.0.0 |
-| Build number | managed remotely by EAS (`autoIncrement`) | auto |
+| Build number | `app.json` → `ios.buildNumber` | bump manually each release |
 | Camera permission | `app.json` → `ios.infoPlist` | ✓ |
 | Photo library permission | `expo-image-picker` plugin config | ✓ |
 | Location permission | `app.json` → `ios.infoPlist` | ✓ |
 | Always-location / microphone stripped | `plugins/withStripUnusedIosPermissions.js` | ✓ |
 | Tablet support | `app.json` → `ios.supportsTablet` | true |
-| iOS archive profile | `eas.json` → `build.production.ios` | ✓ |
-| iOS submit profile | `eas.json` → `submit.production.ios` | needs IDs filled |
+| iOS build/signing | Xcode (`ios/AgroChain.xcworkspace`), automatic signing | ✓ |

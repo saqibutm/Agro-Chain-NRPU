@@ -5,7 +5,7 @@ End‑to‑end deployment of the three tiers: Fabric network → gateway → mob
 ## 1. Prerequisites
 
 - Docker + Docker Compose, Go 1.15+, Fabric 2.x binaries (`peer`, `configtxgen`, `cryptogen`)
-- Node.js 18+, EAS CLI (`npm i -g eas-cli`)
+- Node.js 18+, Xcode (iOS builds) and/or Android Studio/Gradle (Android builds)
 - A Linux host (cloud VM) with public DNS + TLS for the gateway
 
 ## 2. Fabric network bring‑up
@@ -71,15 +71,14 @@ npm install
 npx expo install   # ensures native deps match SDK 50
 # Set the public backend URL:
 #   app.json → expo.extra.apiBaseUrl = "https://api.<your-domain>"
-eas login
-eas build:configure                       # one-time (writes projectId)
-eas build --platform android --profile production   # produces .aab
+npx expo prebuild --platform android --clean
+cd android && ./gradlew bundleRelease   # produces .aab (requires a release keystore — see STORE.md)
 ```
 Then submit per `STORE.md` (first AAB uploaded manually in Play Console).
 
 ```mermaid
 flowchart TB
-    cfg[Set apiBaseUrl] --> build[eas build AAB] --> upload[Play Console upload] --> review[Review] --> prod[Production]
+    cfg[Set apiBaseUrl] --> build[gradlew bundleRelease] --> upload[Play Console upload] --> review[Review] --> prod[Production]
 ```
 
 ## 6. Environment matrix

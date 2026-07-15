@@ -91,7 +91,7 @@ Responsiveness via `Dimensions` ratios + `FontSize` scale; cards cap width for t
 ## 8. Build
 
 - Dev: `npx expo start`
-- Release: `eas build --platform android --profile production` (AAB). See Deployment Guide.
+- Release: `cd android && ./gradlew bundleRelease` (AAB). See Deployment Guide.
 
 ## 9. Screenshots
 

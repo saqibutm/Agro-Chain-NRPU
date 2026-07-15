@@ -52,8 +52,8 @@ Capture in **both English and Urdu** if you want localized listings. Suggested 6
 
 Urdu variants: same names with `-ur` suffix, e.g. `screen-01-dashboard-ur.png`.
 
-**How to capture:** `eas build --profile preview` (installable APK) or `npx expo start`
-on a device/emulator, then take device screenshots at 1080×1920.
+**How to capture:** `cd android && ./gradlew assembleRelease` (installable APK) or
+`npx expo start` on a device/emulator, then take device screenshots at 1080×1920.
 
 ---
 

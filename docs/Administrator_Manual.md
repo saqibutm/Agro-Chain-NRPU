@@ -60,8 +60,8 @@ flowchart LR
 ## 7. App release management
 
 - Set `app.json → extra.apiBaseUrl` to the production gateway.
-- Bump `expo.version`; EAS auto‑increments `versionCode`.
-- `eas build --profile production` → upload AAB (see `STORE.md`, `DATA_SAFETY.md`).
+- Bump `expo.version` and `android.versionCode` manually.
+- `cd android && ./gradlew bundleRelease` → upload AAB (see `STORE.md`, `DATA_SAFETY.md`).
 
 ## 8. Disaster recovery
 

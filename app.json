@@ -20,7 +20,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "AgroChain uses the camera to scan product QR codes and to take a profile picture.",
-        "NSLocationWhenInUseUsageDescription": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability."
+        "NSLocationWhenInUseUsageDescription": "AgroChain records the GPS location of farm harvests and custody transfers for supply-chain traceability.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -31,9 +32,9 @@
       "package": "com.agrochain.app",
       "versionCode": 1,
       "permissions": [
-        "CAMERA",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {

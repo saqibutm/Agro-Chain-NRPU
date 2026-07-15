@@ -132,12 +132,13 @@ The backend is Supabase — there is no gateway server to deploy. Run `supabase/
 then ship the mobile app:
 
 ```bash
-eas build --platform android --profile production   # AAB → Google Play
-eas build --platform ios --profile production       # IPA → Apple App Store
-eas submit --platform ios --profile production       # upload to App Store Connect
+npx expo prebuild --platform android --clean && cd android && ./gradlew bundleRelease   # AAB → Google Play
+npx expo prebuild --platform ios --clean   # then open ios/AgroChain.xcworkspace in Xcode,
+                                            # Product → Archive → Distribute App → App Store Connect
 ```
-> iOS release builds require an **Apple Developer account** ($99/yr). EAS can manage signing
-> credentials, or run on macOS with Xcode. Android → Google Play; iOS → App Store Connect.
+> iOS release builds require a **macOS machine with Xcode** and an **Apple Developer account**
+> ($99/yr) signed into Xcode (Settings → Accounts) with automatic signing enabled. Android
+> release builds require a release keystore configured in `android/app/build.gradle`.
 
 Full guide: [`docs/Deployment_Guide.md`](docs/Deployment_Guide.md) · Store steps: `STORE.md`.
 
@@ -237,7 +238,7 @@ AgroChain/
 ├── org/                   # LEGACY: pre-migration Node/Express gateway + CA (unused)
 ├── configtx/              # LEGACY: pre-migration Fabric channel/org config (unused)
 ├── docs/                  # Documentation (architecture docs predate the Supabase migration)
-├── app.json · eas.json    # Expo + EAS build config
+├── app.json               # Expo app config
 └── package.json
 ```
 
