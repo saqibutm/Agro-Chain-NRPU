@@ -65,12 +65,17 @@ ships — that's the point of this field.
 ### iPhone 6.9" — `store/screenshots/ios-6.9/` (1320×2868)
 All 8 English screenshots generated. Upload in order 01–08.
 
-### iPad 12.9" — `store/screenshots/ios-ipad/` (2048×2732)
-All 8 English screenshots generated. **Required** because `supportsTablet: true`.
+### iPad 13" — `store/screenshots/ios-ipad/` (2064×2752)
+1 English screenshot generated (Farmer Dashboard), captured natively on an iPad Pro
+13-inch (M4) simulator. **Required** because `supportsTablet: true`. Apple renamed this
+size class from "12.9-inch" — the old 2048×2732 captures were rejected by App Store
+Connect; add more screenshots the same way if a fuller set is wanted later.
 
 ### Urdu (Pakistan) localization
 - iPhone 6.9": `store/screenshots/ios-6.9-ur/` — 8 screenshots available
-- iPad 12.9": `store/screenshots/ios-ipad-ur/` — 8 screenshots available
+- iPad 12.9": `store/screenshots/ios-ipad-ur/` — 8 screenshots available, **still at the
+  old 2048×2732 size** — will need the same 13-inch recapture if Urdu screenshots are
+  submitted
 
 ---
 
