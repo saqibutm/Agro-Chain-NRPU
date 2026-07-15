@@ -180,7 +180,7 @@ const Home = ({ navigation }) => {
 			? { ...a, screen: "QRScanner" }
 			: a
 		)
-		.map((a) => ({ label: t(a.labelKey), screen: a.screen }));
+		.map((a) => ({ label: t(a.labelKey), screen: a.screen, params: a.params }));
 
 	const roleKpiIndices = ROLE_KPIS[role] || ROLE_KPIS.farmer;
 
