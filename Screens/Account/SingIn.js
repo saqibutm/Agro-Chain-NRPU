@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Dimensions, StyleSheet, Image, ScrollView } from "react-native";
+import { View, Text, Dimensions, StyleSheet, Image, ScrollView, TouchableOpacity } from "react-native";
 import Alert from "../../Abstracts/Alert";
 import Button from "../../Abstracts/Button";
 import Container from "../../Abstracts/Container";
@@ -7,7 +7,8 @@ import Input from "../../Abstracts/TextInput";
 import { Colors, FontSize } from '../../Abstracts/Theme'
 import { useI18n } from '../../i18n/I18nContext'
 import { useAuth } from '../../Services/AuthContext'
-import { authStyles, PHONE_RE } from './AuthShared'
+import { DEMO_MODE } from '../../Services/config'
+import { ROLES, authStyles, PHONE_RE } from './AuthShared'
 const { width, height } = Dimensions.get("window");
 
 export default function SingIn({ navigation }) {
@@ -15,7 +16,10 @@ export default function SingIn({ navigation }) {
     const { signIn } = useAuth();
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
+    const [role, setRole] = useState("farmer");
+    const [roleMenuOpen, setRoleMenuOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const selectedRole = ROLES.find((r) => r.key === role);
 
     const handleSingIn = async () => {
         if (!phone.trim() || !password) {
@@ -29,8 +33,10 @@ export default function SingIn({ navigation }) {
         setSubmitting(true);
         try {
             // Role comes from the account's own profile, not a UI selection —
-            // signIn() prefers the stored profile role over this default.
-            await signIn(phone.trim(), password);
+            // signIn() prefers the stored profile role over this default. The
+            // role picker below only takes effect in DEMO_MODE, where there's
+            // no profiles table to look the real role up from.
+            await signIn(phone.trim(), password, role);
         } catch (error) {
             Alert.alert(t("loginFailed"), error.message || "Invalid mobile number or password");
         } finally {
@@ -71,6 +77,37 @@ export default function SingIn({ navigation }) {
                 />
                 <Text style={styles.forgotText} onPress={() => navigation.navigate("ForgetPassword")}>{t("forgotPassword")}</Text>
 
+                {DEMO_MODE && (
+                    <>
+                        <Text style={authStyles.roleLabel}>{t("selectRole")}</Text>
+                        <View style={styles.dropdownWrap}>
+                            <TouchableOpacity
+                                style={styles.dropdownSelector}
+                                activeOpacity={0.8}
+                                onPress={() => setRoleMenuOpen((open) => !open)}
+                            >
+                                <Text style={styles.dropdownSelectorText}>{t(selectedRole.labelKey)}</Text>
+                                <Text style={styles.dropdownChevron}>{roleMenuOpen ? "▲" : "▼"}</Text>
+                            </TouchableOpacity>
+                            {roleMenuOpen && (
+                                <View style={styles.dropdownList}>
+                                    {ROLES.map((r) => (
+                                        <TouchableOpacity
+                                            key={r.key}
+                                            style={styles.dropdownOption}
+                                            onPress={() => { setRole(r.key); setRoleMenuOpen(false); }}
+                                        >
+                                            <Text style={[styles.dropdownOptionText, role === r.key && styles.dropdownOptionTextActive]}>
+                                                {t(r.labelKey)}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                    </>
+                )}
+
                 <Button
                     text={submitting ? t("signingIn") : t("submit")}
                     width={width * 0.86}
@@ -104,4 +141,37 @@ const styles = StyleSheet.create({
         marginTop: height * 0.01,
         width: width * 0.85,
     },
+    dropdownWrap: {
+        width: width * 0.86,
+        zIndex: 10,
+    },
+    dropdownSelector: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderWidth: 1.5,
+        borderColor: "green",
+        borderRadius: 8,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        backgroundColor: "white",
+    },
+    dropdownSelectorText: { color: "green", fontSize: FontSize.F16, fontWeight: "600" },
+    dropdownChevron: { color: "green", fontSize: 12 },
+    dropdownList: {
+        marginTop: 4,
+        borderWidth: 1.5,
+        borderColor: "green",
+        borderRadius: 8,
+        backgroundColor: "white",
+        overflow: "hidden",
+    },
+    dropdownOption: {
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: "#dCe8dC",
+    },
+    dropdownOptionText: { color: "#333", fontSize: FontSize.F15, fontWeight: "500" },
+    dropdownOptionTextActive: { color: "green", fontWeight: "700" },
 })
