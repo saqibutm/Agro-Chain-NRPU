@@ -2,13 +2,11 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import Alert from "../Abstracts/Alert";
 import Backward from "../Abstracts/Backward";
-import { Camera } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const CameraScreen = ({ navigation }) => {
     const [image, setImage] = useState("");
-    const [permission, requestPermission] = Camera.useCameraPermissions
-        ? Camera.useCameraPermissions()
-        : [null, async () => {}];
+    const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef(null);
 
     const takePicture = async () => {
@@ -54,14 +52,14 @@ const CameraScreen = ({ navigation }) => {
     return (
         <View style={{ flex: 1 }}>
             {image === "" ? (
-                <Camera style={{ flex: 1 }} ref={cameraRef} type={Camera.Constants?.Type?.back}>
+                <CameraView style={{ flex: 1 }} ref={cameraRef} facing="back">
                     <View style={styles.overlay}>
                         <TouchableOpacity onPress={takePicture} style={styles.captureBtn}>
                             <Text style={styles.captureTxt}>Capture</Text>
                         </TouchableOpacity>
                     </View>
                     {backBtn}
-                </Camera>
+                </CameraView>
             ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
                     <Image source={{ uri: image }} style={{ width: '100%', height: '70%', resizeMode: 'contain' }} />
