@@ -99,7 +99,10 @@ Declare the following based on what the app actually collects:
 - **Encryption in transit:** Yes (HTTPS to the Supabase backend).
 - **Data deletion:** In-app, self-service — Settings → Delete Account. Anonymizes (doesn't
   delete) the user's supply-chain records to preserve the audit trail for other participants;
-  see the Privacy Policy §8 for details.
+  see the Privacy Policy §8 for details. For users without the app installed, Play Console's
+  "Account deletion" field can point at
+  **https://saqibutm.github.io/Agro-Chain-NRPU/support.html#delete-account**, which has a
+  pre-filled email link plus a WhatsApp fallback to request deletion.
 - **Camera permission justification:** "Used to scan product QR codes for supply-chain verification." (matches `app.json`)
 - **Location permission justification:** "Used to geotag farm harvests and custody transfers." (matches `app.json`)
 
